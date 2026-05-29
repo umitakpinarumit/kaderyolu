@@ -1,0 +1,326 @@
+const scenarios = [
+  { age: 0, text: 'Doğdun! Annen sana gülümsüyor.', choices: [
+      { text: 'Gülümse', effect: { happiness: 10 } },
+      { text: 'Ağla', effect: { happiness: -10 } },
+      { text: 'Uyanık kal', effect: { health: -8, intelligence: 5 } },
+      { text: 'Uykuya dal', effect: { health: 8, happiness: -3 } },
+    ]
+  },
+  { age: 1, text: 'İlk adımlarını atıyorsun.', choices: [
+      { text: 'Koş', effect: { health: 12, happiness: 5 } },
+      { text: 'Düş', effect: { health: -12, happiness: -6 } },
+      { text: 'Yardım iste', effect: { social: 8, confidence: -4 } },
+      { text: 'Kendi başına dene', effect: { intelligence: 6, health: -4 } },
+    ]
+  },
+  { age: 2, text: 'İlk kelimelerini söylüyorsun.', choices: [
+      { text: 'Anne', effect: { happiness: 10, intelligence: 6 } },
+      { text: 'Baba', effect: { happiness: 8, intelligence: 6 } },
+      { text: 'Kedi', effect: { social: 5, intelligence: 3 } },
+      { text: 'Köpek', effect: { social: 5, happiness: -3 } },
+    ]
+  },
+  { age: 3, text: 'Oyuncaklarınla oynuyorsun.', choices: [
+      { text: 'Paylaş', effect: { social: 10, happiness: 5 } },
+      { text: 'Yalnız oyna', effect: { happiness: 5, social: -8 } },
+      { text: 'Arkadaş çağır', effect: { social: 8, health: -4 } },
+      { text: 'Kendi başına keşfet', effect: { intelligence: 8, happiness: -5 } },
+    ]
+  },
+  { age: 4, text: 'Anaokuluna başlıyorsun.', choices: [
+      { text: 'Yeni arkadaş edin', effect: { social: 10, confidence: 5 } },
+      { text: 'Oyun oyna', effect: { happiness: 8, intelligence: -4 } },
+      { text: 'Kuralları takip et', effect: { intelligence: 6, happiness: -3 } },
+      { text: 'Dikkat etme', effect: { health: -10, social: -6 } },
+    ]
+  },
+  { age: 5, text: 'Resim yapıyorsun.', choices: [
+      { text: 'Renkli çiz', effect: { happiness: 8, intelligence: 4 } },
+      { text: 'Karışık çiz', effect: { intelligence: 8, happiness: -4 } },
+      { text: 'Paylaş', effect: { social: 6, happiness: 4 } },
+      { text: 'Yırt', effect: { happiness: -12, social: -6 } },
+    ]
+  },
+  { age: 6, text: 'İlk bisikletini sürüyorsun.', choices: [
+      { text: 'Hızlı sür', effect: { health: 12, happiness: 5, intelligence: -4 } },
+      { text: 'Düş', effect: { health: -12, happiness: -6 } },
+      { text: 'Arkadaşını davet et', effect: { social: 8, health: -4 } },
+      { text: 'Yavaş ve dikkatli sür', effect: { intelligence: 10, happiness: -4 } },
+    ]
+  },
+  { age: 7, text: 'İlk arkadaş doğum günü partisi.', choices: [
+      { text: 'Hediye ver', effect: { social: 10, money: -8 } },
+      { text: 'Oyna', effect: { happiness: 8, health: -4 } },
+      { text: 'Partiye gitme', effect: { happiness: -6, social: -5 } },
+      { text: 'Yeni arkadaş edin', effect: { social: 8, confidence: 4 } },
+    ]
+  },
+  { age: 8, text: 'İlk okul sınavın.', choices: [
+      { text: 'Çalış', effect: { intelligence: 12, happiness: -5 } },
+      { text: 'Oyun oyna', effect: { happiness: 10, intelligence: -6 } },
+      { text: 'Kopya çek', effect: { intelligence: -6, social: -6 } },
+      { text: 'Öğretmenden yardım al', effect: { intelligence: 6, social: 6 } },
+    ]
+  },
+  { age: 9, text: 'Spor takımına katıldın.', choices: [
+      { text: 'Antrenmana git', effect: { health: 12, happiness: -4 } },
+      { text: 'Evde dinlen', effect: { health: -6, happiness: 6 } },
+      { text: 'Takım arkadaşlarıyla sohbet et', effect: { social: 8, intelligence: -3 } },
+      { text: 'Yarışmalara katıl', effect: { happiness: 10, confidence: 6, health: -5 } },
+    ]
+  },
+  { age: 10, text: 'İlk kamp gezisi.', choices: [
+      { text: 'Doğa keşfi yap', effect: { intelligence: 8, health: -4 } },
+      { text: 'Arkadaşlarınla eğlen', effect: { happiness: 10, social: 6, health: -5 } },
+      { text: 'Yemek yap', effect: { health: 6, intelligence: 4 } },
+      { text: 'Uykusuz kal', effect: { health: -10, intelligence: -4 } },
+    ]
+  },
+  { age: 11, text: 'Arkadaşlarınla futbol oynuyorsun.', choices: [
+      { text: 'Gol at', effect: { happiness: 12, confidence: 6 } },
+      { text: 'Düş', effect: { health: -12, happiness: -6 } },
+      { text: 'Pas ver', effect: { social: 8, intelligence: 4 } },
+      { text: 'Oyun bozanlık yap', effect: { social: -10, happiness: 4 } },
+    ]
+  },
+  { age: 12, text: 'Öğretmen sunum hazırlamanı istiyor.', choices: [
+      { text: 'Çalış', effect: { intelligence: 12, confidence: 5 } },
+      { text: 'Arkadaşınla yap', effect: { social: 10, intelligence: 4 } },
+      { text: 'Hazırlama', effect: { intelligence: -10, confidence: -6 } },
+      { text: 'Kopyala', effect: { intelligence: -6, social: -4 } },
+    ]
+  },
+  { age: 13, text: 'İlk aşkını hissediyorsun.', choices: [
+      { text: 'Açıl', effect: { confidence: 12, social: 5 } },
+      { text: 'Sakla', effect: { happiness: -6, intelligence: 4 } },
+      { text: 'Arkadaşına anlat', effect: { social: 8, confidence: -4 } },
+      { text: 'Yazı yaz', effect: { intelligence: 6, happiness: 6 } },
+    ]
+  },
+  { age: 14, text: 'Arkadaşlarınla kavga ettin.', choices: [
+      { text: 'Özür dile', effect: { social: 10, confidence: -4 } },
+      { text: 'Görmezden gel', effect: { happiness: -8, confidence: 4 } },
+      { text: 'Daha çok tartış', effect: { social: -12, happiness: -6 } },
+      { text: 'Barıştır', effect: { social: 12, intelligence: 6 } },
+    ]
+  },
+  { age: 15, text: 'Lise başlıyor.', choices: [
+      { text: 'Çalış', effect: { intelligence: 12, happiness: -6 } },
+      { text: 'Sosyal ol', effect: { social: 12, intelligence: -6 } },
+      { text: 'Spor yap', effect: { health: 12, happiness: 6 } },
+      { text: 'Boş ver', effect: { happiness: -8, intelligence: -6 } },
+    ]
+  },
+  { age: 16, text: 'İlk iş denemesi yapıyorsun.', choices: [
+      { text: 'Çalışkan ol', effect: { money: 12, confidence: 6 } },
+      { text: 'Tembellik yap', effect: { money: -8, happiness: 6 } },
+      { text: 'Arkadaşlarla vakit geçir', effect: { social: 8, money: -6 } },
+      { text: 'Sorumluluk al', effect: { confidence: 10, health: -4 } },
+    ]
+  },
+  { age: 17, text: 'Üniversite sınavına hazırlanıyorsun.', choices: [
+      { text: 'Çalış', effect: { intelligence: 15, happiness: -6 } },
+      { text: 'Arkadaşlarla takıl', effect: { social: 10, intelligence: -6 } },
+      { text: 'Motivasyon kaybet', effect: { confidence: -10, happiness: -8 } },
+      { text: 'Dershaneye git', effect: { intelligence: 10, money: -8 } },
+    ]
+  },
+  { age: 18, text: 'Üniversiteye başlıyorsun.', choices: [
+      { text: 'Partiye git', effect: { social: 12, health: -8 } },
+      { text: 'Ders çalış', effect: { intelligence: 15, happiness: -6 } },
+      { text: 'İş bul', effect: { money: 10, health: -6 } },
+      { text: 'Yalnız kal', effect: { happiness: -8, intelligence: 6 } },
+    ]
+  },
+  { age: 19, text: 'Yurt yaşamı.', choices: [
+      { text: 'Arkadaş edin', effect: { social: 12, confidence: 5 } },
+      { text: 'Odaya kapan', effect: { happiness: -8, intelligence: 6 } },
+      { text: 'Parti düzenle', effect: { social: 10, money: -6 } },
+      { text: 'Kütüphaneye git', effect: { intelligence: 8, happiness: -4 } },
+    ]
+  },
+  { age: 20, text: 'İlk ciddi ilişkin.', choices: [
+      { text: 'Dürüst ol', effect: { confidence: 10, social: 8 } },
+      { text: 'Yalan söyle', effect: { confidence: -8, happiness: -6 } },
+      { text: 'Romantik ol', effect: { happiness: 12, money: -5 } },
+      { text: 'İhmal et', effect: { happiness: -12, social: -6 } },
+    ]
+  },
+  { age: 21, text: 'Sınavdan kaldın.', choices: [
+      { text: 'Daha çok çalış', effect: { intelligence: 15, happiness: -6 } },
+      { text: 'Moral boz', effect: { confidence: -10, happiness: -8 } },
+      { text: 'Arkadaşlara anlat', effect: { social: 8, happiness: 4 } },
+      { text: 'Umursama', effect: { intelligence: -10, confidence: 6 } },
+    ]
+  },
+  { age: 22, text: 'Kendi evine çıkıyorsun.', choices: [
+      { text: 'Eşyaları düzenle', effect: { confidence: 8, happiness: 6 } },
+      { text: 'Arkadaşını davet et', effect: { social: 12, money: -6 } },
+      { text: 'Dağınık yaşa', effect: { happiness: -8, intelligence: -6 } },
+      { text: 'Çalışıp masraf çıkar', effect: { money: 10, health: -6 } },
+    ]
+  },
+  { age: 23, text: 'Staj buldun.', choices: [
+      { text: 'Çalışkan ol', effect: { confidence: 10, intelligence: 6 } },
+      { text: 'Tembel ol', effect: { confidence: -8, happiness: 6 } },
+      { text: 'İnsanlarla tanış', effect: { social: 12, money: -5 } },
+      { text: 'Yan gelip yat', effect: { happiness: -8, confidence: -6 } },
+    ]
+  },
+  { age: 24, text: 'Mezuniyet günü.', choices: [
+      { text: 'Kutla', effect: { happiness: 15, money: -8 } },
+      { text: 'Yalnız kal', effect: { happiness: -10, intelligence: 6 } },
+      { text: 'Arkadaşlarla fotoğraf çek', effect: { social: 12, confidence: 6 } },
+      { text: 'Kutlamayı reddet', effect: { happiness: -12, social: -6 } },
+    ]
+  },
+  { age: 25, text: 'İlk işin.', choices: [
+      { text: 'Çalışkan ol', effect: { money: 15, confidence: 8 } },
+      { text: 'Tembel ol', effect: { money: -10, happiness: 6 } },
+      { text: 'Arkadaş edin', effect: { social: 12, confidence: 6 } },
+      { text: 'Patronla sorun yaşa', effect: { social: -10, confidence: -8 } },
+    ]
+  },
+  { age: 26, text: 'İlk maaşını aldın.', choices: [
+      { text: 'Biriktir', effect: { money: 15, happiness: -4 } },
+      { text: 'Harca', effect: { happiness: 12, money: -12 } },
+      { text: 'Arkadaşlara hediye al', effect: { social: 10, money: -10 } },
+      { text: 'Hiç harcama', effect: { happiness: -8, money: 8 } },
+    ]
+  },
+  { age: 27, text: 'Ailen senden yardım istiyor.', choices: [
+      { text: 'Yardım et', effect: { social: 12, happiness: 6 } },
+      { text: 'Reddet', effect: { social: -10, confidence: 4 } },
+      { text: 'Para gönder', effect: { money: -12, happiness: 8 } },
+      { text: 'Umursama', effect: { happiness: -10, social: -8 } },
+    ]
+  },
+  { age: 28, text: 'Tatile çıktın.', choices: [
+      { text: 'Denize gir', effect: { health: 12, happiness: 6 } },
+      { text: 'Fotoğraf çek', effect: { happiness: 10, social: 8 } },
+      { text: 'Para harca', effect: { money: -12, happiness: 12 } },
+      { text: 'Evde kal', effect: { happiness: -10, money: 6 } },
+    ]
+  },
+  { age: 29, text: 'Yeni bir kursa başladın.', choices: [
+      { text: 'Çalış', effect: { intelligence: 12, happiness: -4 } },
+      { text: 'Arkadaş edin', effect: { social: 12, confidence: 6 } },
+      { text: 'Devamsızlık yap', effect: { intelligence: -10, happiness: 6 } },
+      { text: 'Öğretmene yardım et', effect: { intelligence: 10, social: 6 } },
+    ]
+  },
+  { age: 30, text: 'İlk büyük projen.', choices: [
+      { text: 'Başar', effect: { confidence: 15, happiness: 8 } },
+      { text: 'Başarısız ol', effect: { confidence: -12, happiness: -10 } },
+      { text: 'Arkadaşınla yap', effect: { social: 12, intelligence: 6 } },
+      { text: 'Geçiştir', effect: { intelligence: -10, happiness: -8 } },
+    ]
+  },
+  { age: 31, text: 'Spor salonuna yazıldın.', choices: [
+      { text: 'Düzenli git', effect: { health: 15, confidence: 6 } },
+      { text: 'Bırak', effect: { health: -12, happiness: -8 } },
+      { text: 'Arkadaş edin', effect: { social: 10, health: 6 } },
+      { text: 'Gitme', effect: { health: -10, happiness: -6 } },
+    ]
+  },
+  { age: 32, text: 'Kendi evini aldın.', choices: [
+      { text: 'Kutla', effect: { happiness: 15, money: -8 } },
+      { text: 'Yalnız kal', effect: { happiness: -8, confidence: 6 } },
+      { text: 'Arkadaş davet et', effect: { social: 12, money: -8 } },
+      { text: 'Hiçbir şey yapma', effect: { happiness: -6 } },
+    ]
+  },
+  { age: 33, text: 'İş yerinde terfi fırsatı doğdu.', choices: [
+      { text: 'Çok çalış', effect: { intelligence: 12, happiness: -6, health: -5 } },
+      { text: 'Kendi işini kur', effect: { money: -10, happiness: 10, confidence: 8 } },
+      { text: 'Reddet', effect: { happiness: -8, confidence: -4 } },
+      { text: 'Arkadaşlarla paylaş', effect: { social: 10, happiness: 6 } },
+    ]
+  },
+  { age: 34, text: 'Yeni bir hobiye başladın.', choices: [
+      { text: 'Düzenli yap', effect: { happiness: 12, intelligence: 6 } },
+      { text: 'Bırak', effect: { happiness: -8, confidence: -4 } },
+      { text: 'Arkadaşlara öğret', effect: { social: 12, confidence: 6 } },
+      { text: 'Sadece izleyici ol', effect: { intelligence: 6, happiness: -4 } },
+    ]
+  },
+  { age: 35, text: 'İlk büyük seyahat.', choices: [
+      { text: 'Keşfet', effect: { happiness: 12, intelligence: 6 } },
+      { text: 'Tatil yap', effect: { happiness: 10, health: 6 } },
+      { text: 'Evde kal', effect: { happiness: -8, intelligence: 4 } },
+      { text: 'Arkadaşları davet et', effect: { social: 10, money: -6 } },
+    ]
+  },
+  { age: 36, text: 'Sağlığına dikkat etmeye başladın.', choices: [
+      { text: 'Düzenli spor', effect: { health: 15, confidence: 6 } },
+      { text: 'Beslenmeye dikkat et', effect: { health: 12, intelligence: 4 } },
+      { text: 'Hiçbir şey yapma', effect: { health: -10, happiness: -6 } },
+      { text: 'Arkadaşlarla spor yap', effect: { social: 10, health: 8 } },
+    ]
+  },
+  { age: 37, text: 'İlk ciddi yatırım.', choices: [
+      { text: 'Doğru yatırım yap', effect: { money: 15, confidence: 6 } },
+      { text: 'Yanlış yatırım', effect: { money: -12, confidence: -6 } },
+      { text: 'Arkadaş tavsiyesi al', effect: { social: 10, money: 6 } },
+      { text: 'Hiçbir şey yapma', effect: { money: 0, happiness: -4 } },
+    ]
+  },
+  { age: 38, text: 'Aile toplantısı.', choices: [
+      { text: 'Katıl', effect: { social: 12, happiness: 6 } },
+      { text: 'Gitme', effect: { social: -10, happiness: -6 } },
+      { text: 'Sürpriz yap', effect: { happiness: 10, social: 8 } },
+      { text: 'Sadece selam ver', effect: { social: 6, happiness: 2 } },
+    ]
+  },
+  { age: 39, text: 'İlk sağlık sorunu.', choices: [
+      { text: 'Doktora git', effect: { health: 12, confidence: 6 } },
+      { text: 'İhmal et', effect: { health: -12, happiness: -6 } },
+      { text: 'Arkadaş tavsiyesi al', effect: { social: 6, health: 4 } },
+      { text: 'Dinlen', effect: { health: 8, happiness: 4 } },
+    ]
+  },
+  { age: 40, text: 'Kariyer zirvesi.', choices: [
+      { text: 'Başar', effect: { confidence: 15, money: 12 } },
+      { text: 'Tembellik yap', effect: { confidence: -10, happiness: -6 } },
+      { text: 'Arkadaşlarla paylaş', effect: { social: 12, happiness: 6 } },
+      { text: 'İhmal et', effect: { happiness: -10, confidence: -8 } },
+    ]
+  },
+  { age: 41, text: 'Yeni bir beceri öğreniyorsun.', choices: [
+      { text: 'Düzenli çalış', effect: { intelligence: 12, confidence: 6 } },
+      { text: 'Bırak', effect: { intelligence: -8, happiness: -6 } },
+      { text: 'Arkadaşlara öğret', effect: { social: 12, confidence: 6 } },
+      { text: 'Sadece gözlemle', effect: { intelligence: 6, happiness: -4 } },
+    ]
+  },
+  { age: 42, text: 'Hayatında önemli bir karar alıyorsun.', choices: [
+      { text: 'Risk al', effect: { confidence: 12, money: 8 } },
+      { text: 'Güvenli yol seç', effect: { happiness: 6, intelligence: 4 } },
+      { text: 'Danışman al', effect: { social: 8, intelligence: 6 } },
+      { text: 'Hiçbir şey yapma', effect: { happiness: -6, confidence: -4 } },
+    ]
+  },
+  { age: 43, text: 'Uzun süredir beklenen tatil.', choices: [
+      { text: 'Yeni yerler keşfet', effect: { happiness: 12, intelligence: 6 } },
+      { text: 'Dinlen', effect: { health: 10, happiness: 8 } },
+      { text: 'Arkadaşları davet et', effect: { social: 10, money: -6 } },
+      { text: 'Evde kal', effect: { happiness: -8, intelligence: 4 } },
+    ]
+  },
+  { age: 44, text: 'Yeni bir hobiye başlıyorsun.', choices: [
+      { text: 'Düzenli yap', effect: { happiness: 12, intelligence: 6 } },
+      { text: 'Bırak', effect: { happiness: -8, confidence: -4 } },
+      { text: 'Arkadaşlara öğret', effect: { social: 12, confidence: 6 } },
+      { text: 'Sadece gözlemle', effect: { intelligence: 6, happiness: -4 } },
+    ]
+  },
+  { age: 45, text: 'Hayatında büyük bir dönüm noktası.', choices: [
+      { text: 'Başarıya odaklan', effect: { confidence: 15, happiness: 8 } },
+      { text: 'Rahatla', effect: { happiness: 10, health: 6 } },
+      { text: 'Arkadaşlarla paylaş', effect: { social: 12, happiness: 6 } },
+      { text: 'Hiçbir şey yapma', effect: { happiness: -8, confidence: -6 } },
+    ]
+  },
+];
+
+export default scenarios;

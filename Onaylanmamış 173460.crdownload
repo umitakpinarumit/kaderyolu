@@ -1,0 +1,184 @@
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Button } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+
+export default function CareerScreen({ setScreen, money, setMoney, confidence, setConfidence, intelligence, yas }) {
+  const [currentJob, setCurrentJob] = useState(null);
+  const [schoolStage, setSchoolStage] = useState(null); // "ilkokul", "ortaokul", "lise", "universite", "calisma"
+  const [activeTab, setActiveTab] = useState("career");
+
+  const educationOptions = [
+    { title: "Mühendislik", minIQ: 80, salary: 100 },
+    { title: "Tıp", minIQ: 80, salary: 120 },
+    { title: "İktisat", minIQ: 60, salary: 70 },
+    { title: "Sosyal Bilimler", minIQ: 60, salary: 60 },
+  ];
+
+  const basicJobs = [
+    { title: "Market Elemanı", salary: 30 },
+    { title: "Garson", salary: 25 },
+  ];
+
+  const handleSchoolChoice = (choice) => {
+    setSchoolStage(choice);
+    switch(choice) {
+      case "ilkokul":
+      case "ortaokul":
+      case "lise":
+        Alert.alert("Eğitim başladı!", `${choice} için dersler başladı, zekan ve özgüvenin arttı!`);
+        setConfidence(prev => Math.min(prev + 5, 100));
+        break;
+      case "universite":
+        Alert.alert("Üniversite başladı!", "Bölümünü seçebilirsin.");
+        break;
+      case "calisma":
+        Alert.alert("Çalışmaya başladın!", "Maaş kazanmaya başladın.");
+        break;
+    }
+  };
+
+  const handleEducationChoice = (dept) => {
+    if (intelligence >= dept.minIQ) {
+      setMoney(money + dept.salary);
+      setCurrentJob(dept.title);
+      setConfidence(Math.min(confidence + 10, 100));
+      Alert.alert("Tebrikler!", `${dept.title} bölümünü seçtin. Maaşın $${dept.salary} arttı!`);
+    } else {
+      Alert.alert("Uyarı", "Zeka seviyen bu bölümü seçmeye yetmiyor!");
+    }
+  };
+
+  const handleBasicJob = (job) => {
+    setMoney(money + job.salary);
+    setCurrentJob(job.title);
+    setConfidence(Math.min(confidence + 5, 100));
+    Alert.alert("Başarılı", `${job.title} olarak işe başladın. Maaşın $${job.salary} arttı!`);
+  };
+
+  const promoteJob = () => {
+    if (!currentJob) {
+      Alert.alert("Uyarı", "Önce bir iş seçmelisin!");
+      return;
+    }
+    const increase = Math.floor(Math.random() * 50) + 10;
+    setMoney(money + increase);
+    setConfidence(Math.min(confidence + 5, 100));
+    Alert.alert("Tebrikler!", `${currentJob} pozisyonunda maaşın $${increase} arttı ve özgüvenin yükseldi!`);
+  };
+
+  // Yaşa göre hangi okul aşaması seçilebilir
+  const stagesByAge = [];
+  if (yas >= 7 && yas <= 10) stagesByAge.push("ilkokul");
+  if (yas >= 11 && yas <= 13) stagesByAge.push("ortaokul");
+  if (yas >= 14 && yas <= 17) stagesByAge.push("lise");
+  if (yas >= 18) stagesByAge.push("universite", "calisma");
+
+  return (
+    <View style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <Text style={styles.title}>Kariyer Ekranı</Text>
+        <Text style={styles.status}>Para: ${money}</Text>
+        <Text style={styles.status}>Özgüven: {confidence}</Text>
+        <Text style={styles.status}>Mevcut İş: {currentJob || "Henüz seçilmedi"}</Text>
+
+        {!schoolStage ? (
+          <>
+            <Text style={styles.subtitle}>Eğitim / Çalışma Seçimi:</Text>
+            {stagesByAge.map((stage, index) => (
+              <TouchableOpacity key={index} style={styles.card} onPress={() => handleSchoolChoice(stage)}>
+                <Text>
+                  {stage === "ilkokul" ? "İlkokula Başla" :
+                   stage === "ortaokul" ? "Ortaokula Geç" :
+                   stage === "lise" ? "Liseye Başla" :
+                   stage === "universite" ? "Üniversiteye Başla" :
+                   "Çalışmaya Başla"}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </>
+        ) : schoolStage === "universite" ? (
+          <>
+            <Text style={styles.subtitle}>Bölüm Seçimi:</Text>
+            {educationOptions
+              .filter(dept => intelligence >= dept.minIQ)
+              .map((dept, index) => (
+                <TouchableOpacity key={index} style={styles.card} onPress={() => handleEducationChoice(dept)}>
+                  <Text>{dept.title}</Text>
+                  <Text>Maaş: ${dept.salary}</Text>
+                </TouchableOpacity>
+              ))}
+          </>
+        ) : schoolStage === "calisma" ? (
+          <>
+            <Text style={styles.subtitle}>Asgari Ücret İşleri:</Text>
+            {basicJobs.map((job, index) => (
+              <TouchableOpacity key={index} style={styles.card} onPress={() => handleBasicJob(job)}>
+                <Text>{job.title}</Text>
+                <Text>Maaş: ${job.salary}</Text>
+              </TouchableOpacity>
+            ))}
+          </>
+        ) : (
+          <Text style={{ marginVertical: 10 }}>Eğitim aşaman devam ediyor...</Text>
+        )}
+
+        {currentJob && (
+          <Button title="Terfi Et / Maaş Arttır" onPress={promoteJob} color="#f39c12" />
+        )}
+
+        <Button title="Ana Menüye Dön" onPress={() => setScreen("menu")} color="#3498db" />
+      </ScrollView>
+
+      {/* Alt tab menüsü */}
+      <View style={styles.bottomMenu}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => setScreen("oyun")}>
+          <MaterialIcons name="menu-book" size={28} color={activeTab === "scenario" ? "blue" : "gray"} />
+          <Text style={{ color: activeTab === "scenario" ? "blue" : "gray" }}>Senaryolar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton} onPress={() => setScreen("career")}>
+          <MaterialIcons name="work" size={28} color={activeTab === "career" ? "blue" : "gray"} />
+          <Text style={{ color: activeTab === "career" ? "blue" : "gray" }}>Kariyer</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton} onPress={() => setScreen("profil")}>
+          <MaterialIcons name="person" size={28} color={activeTab === "profile" ? "blue" : "gray"} />
+          <Text style={{ color: activeTab === "profile" ? "blue" : "gray" }}>Profil</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bottomMenu: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    borderColor: '#ccc',
+    paddingVertical: 10,
+    backgroundColor: '#f9f9f9',
+  },
+  iconButton: {
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 10,
+  },
+  status: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  card: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+});

@@ -1,0 +1,36 @@
+const cases = [
+  { id: 'c01', stem: 'Ateş, boğaz ağrısı, bademciklerde eksudalı plaklar', dxOps: ['Viral farenjit', 'Streptokoksik tonsillit', 'Laringit'], dxCorrect: 1, txOps: ['Semptomatik bakım', 'Penisilin/Amoksisilin', 'Steroid tek doz'], txCorrect: 1 },
+  { id: 'c02', stem: 'Göğüs ağrısı, eforla artan, ST elevasyonu', dxOps: ['Stabil anjina', 'Akut MI', 'Panik atak'], dxCorrect: 1, txOps: ['ASA + reperfüzyon', 'Sadece dinlenme', 'Benzodiazepin'], txCorrect: 0 },
+  { id: 'c03', stem: 'Poliüri, polidipsi, açlık glukoz 180 mg/dL', dxOps: ['Tip 2 DM', 'DİY', 'Akut pankreatit'], dxCorrect: 0, txOps: ['Yaşam tarzı + Metformin', 'Yalnızca diyetsel kısıtlama', 'Acil insülin'], txCorrect: 0 },
+  { id: 'c04', stem: 'Ani tek taraflı yüz düşüklüğü, alın kasları da etkilenmiş', dxOps: ['İnme', 'Bell paralizisi', 'Migren aurası'], dxCorrect: 1, txOps: ['Kortikosteroid + göz bakımı', 'tPA', 'NSAİİ'], txCorrect: 0 },
+  { id: 'c05', stem: 'Hırıltı, gece öksürüğü, reversibl obstrüksiyon', dxOps: ['KOAH', 'Astım', 'Bronşektazi'], dxCorrect: 1, txOps: ['İnhaler beta-agonist + ICS', 'Antibiyotik', 'Sadece dinlenme'], txCorrect: 0 },
+  { id: 'c06', stem: 'Sağ alt kadran ağrısı, rebound hassasiyet, ateş', dxOps: ['Kolik', 'Apandisit', 'Gıda zehirlenmesi'], dxCorrect: 1, txOps: ['Apendektomi + antibiyotik', 'Sıvı ve dinlenme', 'Antispazmodik'], txCorrect: 0 },
+  { id: 'c07', stem: 'Kilo kaybı, gece terlemesi, hemoptizi, üst lob kavite', dxOps: ['Pnömoni', 'Tüberküloz', 'Akciğer embolisi'], dxCorrect: 1, txOps: ['RIPE rejimi', 'Makrolid', 'Antikoagülasyon'], txCorrect: 0 },
+  { id: 'c08', stem: 'Eforla dispne, bacak ödemi, S3', dxOps: ['Kalp yetmezliği', 'Perikardit', 'Astım'], dxCorrect: 0, txOps: ['ACEİ + Diüretik + Beta bloker', 'Steroid', 'Antibiyotik'], txCorrect: 0 },
+  { id: 'c09', stem: 'Hemikrania, fotofobi, bulantı, tek taraflı zonklayıcı', dxOps: ['Gerilim baş ağrısı', 'Migren', 'Sütür ayrılması'], dxCorrect: 1, txOps: ['Triptan/NSAİİ + profilaksi', 'Antibiyotik', 'Kas gevşetici'], txCorrect: 0 },
+  { id: 'c10', stem: 'Diz ağrısı, sabah tutukluğu <30 dk, tek eklem efuzyonu', dxOps: ['Osteoartrit', 'Romatoid artrit', 'Septik artrit'], dxCorrect: 0, txOps: ['NSAİİ + kilo kontrol', 'DMARD', 'Acil drenaj + AB'], txCorrect: 0 },
+  { id: 'c11', stem: 'Yüksek ateş, ense sertliği, bilinç değişikliği', dxOps: ['Migren', 'Menenjit', 'Sinüzit'], dxCorrect: 1, txOps: ['Acil IV antibiyotik + LP', 'Analjezik', 'Decongestan'], txCorrect: 0 },
+  { id: 'c12', stem: 'Postprandial epigastrik ağrı, H. pylori (+)', dxOps: ['Gastrit', 'Peptik ülser', 'Pankreatit'], dxCorrect: 1, txOps: ['PPI + Eradikasyon', 'Sadece antasit', 'Amilaz baskılama'], txCorrect: 0 },
+  { id: 'c13', stem: 'Şiddetli ani baş ağrısı, ensefalik kanama şüphesi', dxOps: ['SAH', 'Migren', 'Sinüzit'], dxCorrect: 0, txOps: ['Acil BT + nöroloji', 'NSAİİ', 'Antibiyotik'], txCorrect: 0 },
+  { id: 'c14', stem: 'Disüri, sık idrara çıkma, lökositüri', dxOps: ['Akut sistit', 'Pyelonefrit', 'Böbrek taşı'], dxCorrect: 0, txOps: ['Empirik oral AB', 'Yatak istirahati', 'İV sıvı'], txCorrect: 0 },
+  { id: 'c15', stem: 'Bulanık görme, göz ağrısı, ışık hassasiyeti', dxOps: ['Konjonktivit', 'Üveit', 'Glokom'], dxCorrect: 1, txOps: ['Steroid damla + acil göz', 'Antibiyotik damla', 'Göz yıkama'], txCorrect: 0 },
+  { id: 'c16', stem: 'Yorgunluk, TSH yüksek, soğuğa intolerans', dxOps: ['Hipertiroidi', 'Hipotiroidi', 'Addison'], dxCorrect: 1, txOps: ['Levotiroksin', 'Propiltiyourasil', 'Hidrokortizon'], txCorrect: 0 },
+  { id: 'c17', stem: 'Hiperkalemi, EKG’de sivri T dalgaları', dxOps: ['Hiperkalemi', 'Hipokalsemi', 'Hipomagnezemi'], dxCorrect: 0, txOps: ['Kalsiyum glukonat + tedavi', 'IV Mg', 'IV KCl'], txCorrect: 0 },
+  { id: 'c18', stem: 'Diz kilitlenmesi, menisküs testi pozitif', dxOps: ['ÖÇB rüptürü', 'Menisküs yırtığı', 'Bursit'], dxCorrect: 1, txOps: ['FTR/Artroskopi', 'Sadece buz', 'AB'], txCorrect: 0 },
+  { id: 'c19', stem: 'Kilo kaybı, diyare, demir eksikliği anemisi', dxOps: ['IBD', 'Kolon kanseri', 'İBS'], dxCorrect: 1, txOps: ['Onkoloji + cerrahi değerlendirme', 'Laksatif', 'Antispazmodik'], txCorrect: 0 },
+  { id: 'c20', stem: 'Öksürük >3 ay, balgam, sigara öyküsü', dxOps: ['KOAH', 'Astım', 'Pnömoni'], dxCorrect: 0, txOps: ['Bronkodilatatör + ICS', 'Makrolid', 'Antiviral'], txCorrect: 0 },
+  { id: 'c21', stem: 'Bilinç kaybı, hipoglisemi (glukoz 40)', dxOps: ['Hipoglisemi', 'Epilepsi', 'İnme'], dxCorrect: 0, txOps: ['IV dekstroz', 'Antiepileptik', 'tPA'], txCorrect: 0 },
+  { id: 'c22', stem: 'Kurdeşen, anjiyoödem, hipotansiyon', dxOps: ['Anafilaksi', 'Ürtiker', 'Kontakt dermatit'], dxCorrect: 0, txOps: ['IM adrenalin + destek', 'Antihistaminik', 'Topikal steroid'], txCorrect: 0 },
+  { id: 'c23', stem: 'Yenidoğanda sarılık, total bilirubin yüksek', dxOps: ['Fizyolojik', 'Kernikterus riski', 'Hepatit'], dxCorrect: 1, txOps: ['Fototerapi değerlendirmesi', 'Antiviral', 'Antibiyotik'], txCorrect: 0 },
+  { id: 'c24', stem: 'TINEA pedis: kaşıntı, pullanma', dxOps: ['Ekzema', 'Mantar enf.', 'Sedef'], dxCorrect: 1, txOps: ['Topikal antifungal', 'Topikal steroid', 'Antibiyotik'], txCorrect: 0 },
+  { id: 'c25', stem: 'Kafa travması sonrası baş ağrısı, kusma, BT normal', dxOps: ['Konküzyon', 'SAH', 'Meninjit'], dxCorrect: 0, txOps: ['Dinlenme + takip', 'LP', 'AB'], txCorrect: 0 },
+  { id: 'c26', stem: 'Gebede idrarda nitrit (+), ateş yok', dxOps: ['Asemptomatik bakteriüri', 'Akut sistit', 'Piyelonefrit'], dxCorrect: 0, txOps: ['Gebeye güvenli AB', 'Bekle', 'NSAİİ'], txCorrect: 0 },
+  { id: 'c27', stem: 'Eforla bacak ağrısı, ABI düşük', dxOps: ['DVT', 'Periferik arter hastalığı', 'Kas yırtığı'], dxCorrect: 1, txOps: ['Statin + egzersiz + antiplatelet', 'Antikoagülasyon', 'Dinlenme'], txCorrect: 0 },
+  { id: 'c28', stem: 'Akut tek taraflı göz ağrısı, haleler, midriyazis', dxOps: ['Üveit', 'Açı kapanması glokomu', 'Konjonktivit'], dxCorrect: 1, txOps: ['Acil göz içi basınç düşürücü', 'Steroid', 'Antibiyotik'], txCorrect: 0 },
+  { id: 'c29', stem: 'Deri üzerinde hedef lezyonlar, ilaç sonrası', dxOps: ['Eritema multiforme', 'Psöriazis', 'Skarlet ateşi'], dxCorrect: 0, txOps: ['Sebep ilacın kesilmesi + destek', 'Antibiyotik', 'UV'], txCorrect: 0 },
+  { id: 'c30', stem: 'Kuru öksürük, bilateral hiler lenfadenopati', dxOps: ['Sarkoidoz', 'TBC', 'Pnömoni'], dxCorrect: 0, txOps: ['Steroid düşün', 'RIPE', 'Makrolid'], txCorrect: 0 },
+];
+
+export default cases;
+
+

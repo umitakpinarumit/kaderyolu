@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seçim Oyunu</title>
+  <link rel="stylesheet" href="./src/styles/theme.css">
+  <meta name="color-scheme" content="light dark">
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="app-title">Seçim Oyunu</h1>
+    <div style="display:flex; gap:8px;">
+      <button id="newGame" class="btn-secondary" aria-label="Yeni oyuna başla">Yeni Oyun</button>
+      <button id="themeToggle" class="btn-secondary" aria-label="Temayı değiştir">Tema</button>
+    </div>
+  </header>
+  <main id="app" class="app-main">
+    <div id="game" class="game-container">
+      <div class="screen">
+        <div id="content" class="content"></div>
+        <div id="choices" class="choices"></div>
+      </div>
+    </div>
+  </main>
+  <footer class="app-footer">v0.1 · Yerel prototip</footer>
+  <script type="module" src="./src/main.js"></script>
+  
+</body>
+</html>
+

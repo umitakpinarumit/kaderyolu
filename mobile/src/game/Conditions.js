@@ -15,11 +15,11 @@ export const Conditions = {
     }
     if (condition.numberGte) {
       const { key, value } = condition.numberGte;
-      return (state.data?.[key] ?? 0) >= value;
+      return (state.data.numbers?.[key] ?? 0) >= value;
     }
     if (condition.numberLte) {
       const { key, value } = condition.numberLte;
-      return (state.data?.[key] ?? 0) <= value;
+      return (state.data.numbers?.[key] ?? 0) <= value;
     }
     if (condition.flagEquals) {
       const { key, value } = condition.flagEquals;

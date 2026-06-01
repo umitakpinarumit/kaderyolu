@@ -34,7 +34,7 @@ export class GameState {
   }
 
   setFlag(flagKey, value) {
-    this.data.flags[flagKey] = Boolean(value);
+    this.data.flags[flagKey] = value;
   }
 
   incrementVisit(sceneId) {

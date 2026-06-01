@@ -12,6 +12,7 @@ export class SceneManager {
 
   transitionTo(sceneId) {
     if (!this.sceneRegistry[sceneId]) {
+      console.error('[SCENE MISSING]', sceneId, '— mevcut:', this.currentSceneId);
       throw new Error(`Geçersiz sahne: ${sceneId}`);
     }
     this.currentSceneId = sceneId;

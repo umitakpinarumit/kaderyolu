@@ -3,18 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Seçim Oyunu</title>
+  <title>Kaderyolu</title>
   <link rel="stylesheet" href="./src/styles/theme.css">
   <meta name="color-scheme" content="light dark">
 </head>
 <body>
+
+  <!-- Karakter portresi (sağ alt sabit) -->
+  <div id="bg-portrait" class="bg-portrait" aria-hidden="true"></div>
+
+  <!-- Header -->
   <header class="app-header">
-    <h1 class="app-title">Seçim Oyunu</h1>
-    <div style="display:flex; gap:8px;">
+    <h1 class="app-title">Kaderyolu</h1>
+    <div class="header-actions">
+      <button id="goalBtn" class="btn-secondary goal-btn" aria-label="Hedef seç">🎯 Hedef</button>
       <button id="newGame" class="btn-secondary" aria-label="Yeni oyuna başla">Yeni Oyun</button>
       <button id="themeToggle" class="btn-secondary" aria-label="Temayı değiştir">Tema</button>
     </div>
   </header>
+
+  <!-- Hedef İlerleme HUD -->
+  <div id="goal-hud" class="goal-hud" aria-label="Hedef ilerlemesi"></div>
+
+  <!-- Oyun alanı -->
   <main id="app" class="app-main">
     <div id="game" class="game-container">
       <div class="screen">
@@ -23,9 +34,39 @@
       </div>
     </div>
   </main>
-  <footer class="app-footer">v0.1 · Yerel prototip</footer>
+
+  <footer class="app-footer">v0.2 · Kaderyolu</footer>
+
+  <!-- Hedef seçim modal -->
+  <div id="goal-modal" class="goal-modal" role="dialog" aria-modal="true" aria-label="Hedef Seç" hidden>
+    <div class="goal-modal-backdrop"></div>
+    <div class="goal-modal-panel">
+      <div class="goal-modal-header">
+        <h2>Hedefini Seç</h2>
+        <button id="goalModalClose" class="modal-close" aria-label="Kapat">✕</button>
+      </div>
+      <div id="goal-modal-list" class="goal-modal-list"></div>
+    </div>
+  </div>
+
+  <!-- Mini Oyun Modal -->
+  <div id="mg-modal" class="mg-modal" hidden>
+    <div class="mg-backdrop"></div>
+    <div class="mg-panel">
+      <div class="mg-header">
+        <h3 id="mg-title"></h3>
+        <p id="mg-desc" class="muted"></p>
+      </div>
+      <div id="mg-content" class="mg-content"></div>
+    </div>
+  </div>
+
+  <!-- Bildirim (toast) konteyneri -->
+  <div id="notifs" class="notifs-container" aria-live="polite"></div>
+
+  <!-- Seçim feedback (animated chips) konteyneri -->
+  <div id="feedback-layer" class="feedback-layer" aria-hidden="true"></div>
+
   <script type="module" src="./src/main.js"></script>
-  
 </body>
 </html>
-

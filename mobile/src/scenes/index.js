@@ -268,192 +268,354 @@ function getScenes() {
         { label: 'Keyfine bak', next: 'y2015_high_school', effects: [ { statDelta: { happiness: 3, intelligence: -2 } } ] }
       ]
     }),
-    y2015_high_school: (state) => ({
-      text: `
-        <h2>2015 · Lise Yolu</h2>
-        <p>Okul seçimi: akademik, mesleki veya dengeli bir yol.</p>
-      `,
-      choices: [
-        { label: 'Fen ağırlıklı lise', next: 'y2015_hs_fen', effects: [ { statDelta: { intelligence: 6 } } ] },
-        { label: 'Anadolu lisesi (dengeli)', next: 'y2015_hs_anadolu', effects: [ { statDelta: { social: 3, intelligence: 3 } } ] },
-        { label: 'Meslek lisesi', next: 'y2016_voc_start', effects: [ { statDelta: { confidence: 3 } } ] },
-        { label: 'Güzel sanatlar lisesi', next: 'y2016_artist_portfolio', effects: [ { statDelta: { happiness: 3, confidence: 2 } } ] },
-        { label: 'Okumak yerine çıraklık', next: 'y2015_apprenticeship_start', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Askerî yol', next: 'y2018_military_choice', effects: [ { statDelta: { health: 1, confidence: 1 } } ] }
-      ]
-    }),
-    y2015_hs_fen: (state) => ({
-      text: `
-        <h2>2015 · Fen Lisesi Yolu</h2>
-        <p>Hangi odak?</p>
-      `,
-      choices: [
-        { label: 'Bilim olimpiyatları', next: 'y2016_projects', effects: [ { statDelta: { intelligence: 3, focus: 2, discipline: 1 } } ] },
-        { label: 'Laboratuvar çalışmaları', next: 'y2016_projects', effects: [ { statDelta: { intelligence: 2, confidence: 1 } } ] },
-        { label: 'Özel ders', next: 'y2016_projects', effects: [ { statDelta: { intelligence: 2 } }, { statDelta: { money: -200 } } ] }
-      ]
-    }),
-    y2015_hs_anadolu: (state) => ({
-      text: `
-        <h2>2015 · Anadolu Lisesi Yolu</h2>
-        <p>Hangi etkinlik?</p>
-      `,
-      choices: [
-        { label: 'Dil kulübü', next: 'y2016_projects', effects: [ { statDelta: { social: 2, confidence: 1 } } ] },
-        { label: 'Değişim programı', next: 'y2016_projects', effects: [ { statDelta: { confidence: 2, social: 1 } }, { numberDelta: { travelCount: 1 } } ] },
-        { label: 'Öğrenci konseyi', next: 'y2016_projects', effects: [ { statDelta: { confidence: 2, charisma: 1 } } ] }
-      ]
-    }),
+    y2015_high_school: (state) => {
+      const s = state.data.stats;
+      const hint = s.intelligence >= 70
+        ? '<p class="stat-note">⭐ Güçlü zekânla fen lisesi için çok uygun bir adaysın.</p>'
+        : s.intelligence >= 55
+        ? '<p class="stat-note">📊 Genel liseler sana açık. Meslek lisesi de somut kariyer kapısı.</p>'
+        : '<p class="stat-note">📊 Akademik yol zorlu; pratik ve mesleki yollar daha hızlı kapı açar.</p>';
+      return {
+        text: `
+          <h2>2015 · Büyük Kavşak — Lise Seçimi</h2>
+          <p>Her yol farklı bir geleceğe çıkıyor. Seçiminin bedelleri de fırsatları kadar gerçek.</p>
+          ${hint}
+        `,
+        choices: [
+          { label: '🔬 Fen ağırlıklı lise',
+            next: 'y2015_hs_fen',
+            conditions: [ { statGte: { key: 'intelligence', value: 62 } } ],
+            effects: [ { statDelta: { intelligence: 7, focus: 3, discipline: 2, social: -3, happiness: -2 } } ] },
+          { label: '📖 Anadolu lisesi (dengeli)',
+            next: 'y2015_hs_anadolu',
+            effects: [ { statDelta: { social: 4, intelligence: 4, confidence: 2, focus: -1 } } ] },
+          { label: '🔧 Meslek lisesi',
+            next: 'y2016_voc_start',
+            effects: [ { statDelta: { confidence: 4, discipline: 3, intelligence: -2, social: -1 } } ] },
+          { label: '🎨 Güzel sanatlar lisesi',
+            next: 'y2016_artist_portfolio',
+            conditions: [ { statGte: { key: 'creativity', value: 45 } } ],
+            effects: [ { statDelta: { creativity: 5, happiness: 4, intelligence: -2, discipline: -1 } } ] },
+          { label: '🔨 Çıraklık (okul değil iş)',
+            next: 'y2015_apprenticeship_start',
+            effects: [ { statDelta: { confidence: 3, discipline: 3, money: 200, intelligence: -3, social: -2 } } ] },
+          { label: '🎖️ Askerî yol',
+            next: 'y2018_military_choice',
+            conditions: [ { statGte: { key: 'health', value: 50 } } ],
+            effects: [ { statDelta: { health: 3, discipline: 4, confidence: 2, happiness: -3, social: -2 } } ] },
+        ]
+      };
+    },
+    y2015_hs_fen: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2015 · Fen Lisesi — Odak Seçimi</h2>
+          <p>Baskılı ortam ama güçlü mezunlar çıkar. Zamanını nasıl değerlendirirsin?</p>
+          ${s.focus >= 55 ? '<p class="stat-note">📊 İyi odak seviyenle proje liderliğine uygunsun.</p>' : ''}
+        `,
+        choices: [
+          { label: '🔬 Bilim olimpiyatları',
+            next: 'y2016_projects',
+            effects: [ { statDelta: { intelligence: 8, focus: 4, confidence: 3, social: -3, happiness: -2 } } ] },
+          { label: '🧪 Laboratuvar ve proje çalışması',
+            next: 'y2016_projects',
+            effects: [ { statDelta: { intelligence: 5, discipline: 3, confidence: 2, happiness: -1 } } ] },
+          { label: '📚 Özel ders (yoğun hazırlık)',
+            next: 'y2016_projects',
+            effects: [ { statDelta: { intelligence: 6, discipline: 3, happiness: -2, social: -2, money: -200 } } ] },
+        ]
+      };
+    },
+    y2015_hs_anadolu: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2015 · Anadolu Lisesi — Yönelim</h2>
+          <p>Dengeli program; sosyal ve akademiyi bir arada yürütebilirsin.</p>
+          ${s.social >= 55 ? '<p class="stat-note">📊 Güçlü sosyalliğinle kulüp ve konsey rolleri sana açık.</p>' : ''}
+        `,
+        choices: [
+          { label: '🌍 Dil kulübü ve değişim programı',
+            next: 'y2016_projects',
+            effects: [ { statDelta: { social: 5, confidence: 3, intelligence: 2 } }, { numberDelta: { travelCount: 1 } } ] },
+          { label: '🤝 Öğrenci konseyi & sosyal proje',
+            next: 'y2016_projects',
+            effects: [ { statDelta: { social: 8, charisma: 4, confidence: 3, intelligence: -2, focus: -2 } } ] },
+          { label: '📖 Akademiye odaklan (üniversite hedefi)',
+            next: 'y2016_projects',
+            effects: [ { statDelta: { intelligence: 6, discipline: 3, social: -2, happiness: -1 } } ] },
+        ]
+      };
+    },
     // Meslek lisesi akışı
     y2016_voc_start: (state) => ({
       text: `
-        <h2>2016 · Meslek Lisesi Başlangıç</h2>
-        <p>Alan seçimi yapmalısın.</p>
+        <h2>2016 · Meslek Lisesi — Alan Seçimi</h2>
+        <p>Her alan farklı güçlü yönler geliştirir — ama farklı şeyleri feda eder.</p>
       `,
       choices: [
-        { label: 'Elektronik', next: 'y2017_voc_practice', effects: [ { setFlag: { vocField: 'elec' } }, { statDelta: { intelligence: 2, focus: 1 } } ] },
-        { label: 'Otomotiv', next: 'y2017_voc_practice', effects: [ { setFlag: { vocField: 'auto' } }, { statDelta: { strength: 1, confidence: 1 } } ] },
-        { label: 'Bilişim', next: 'y2017_voc_practice', effects: [ { setFlag: { vocField: 'it' } }, { statDelta: { intelligence: 2, creativity: 1 } } ] }
+        { label: '⚡ Elektrik-Elektronik',
+          next: 'y2017_voc_practice',
+          effects: [ { setFlag: { vocField: 'elektrik' } }, { addTrait: 'vocElektrik' }, { statDelta: { intelligence: 3, focus: 2, confidence: -1 } } ] },
+        { label: '🔧 Motorlu Araçlar',
+          next: 'y2017_voc_practice',
+          effects: [ { setFlag: { vocField: 'motor' } }, { addTrait: 'vocMotor' }, { statDelta: { strength: 2, confidence: 3, intelligence: -1, health: -1 } } ] },
+        { label: '💻 Bilişim Teknolojileri',
+          next: 'y2017_voc_practice',
+          effects: [ { setFlag: { vocField: 'bilisim' } }, { addTrait: 'vocBilisim' }, { statDelta: { intelligence: 3, creativity: 2, health: -1, social: -1 } } ] },
       ]
     }),
-    y2017_voc_practice: (state) => ({
-      text: `
-        <h2>2017 · Atölye ve Staj</h2>
-        <p>Pratik yaparak uzmanlaş.</p>
-      `,
-      choices: [
-        { label: 'Usta yanında staj', next: 'y2018_voc_outcome', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Okul atölyesi', next: 'y2018_voc_outcome', effects: [ { statDelta: { discipline: 1, focus: 1 } } ] },
-        { label: 'Freelance işler', next: 'y2018_voc_outcome', effects: [ { statDelta: { money: 200, confidence: 1 } } ] }
-      ]
-    }),
+    y2017_voc_practice: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2017–2018 · Staj ve Atölye</h2>
+          <p>Pratik deneyim zamanı. Nasıl yaklaşıyorsun?</p>
+          ${s.confidence >= 55 ? '<p class="stat-note">📊 Özgüvenin var — işyeri ortamında kendin olabilirsin.</p>' : ''}
+        `,
+        choices: [
+          { label: '🏫 Okul atölyesinde derinleş',
+            next: 'y2018_voc_outcome',
+            effects: [ { statDelta: { intelligence: 2, discipline: 3, focus: 2, money: -50, social: -1 } } ] },
+          { label: '🏭 İşyeri stajı (gerçek deneyim)',
+            next: 'y2018_voc_outcome',
+            effects: [ { statDelta: { confidence: 4, social: 2, money: 150, intelligence: -1 } } ] },
+          { label: '💼 Çalış ve stajı paralel yürüt',
+            next: 'y2018_voc_outcome',
+            effects: [ { statDelta: { money: 300, confidence: 3, health: -2, focus: -1 } } ] },
+        ]
+      };
+    },
     y2018_voc_outcome: (state) => ({
       text: `
-        <h2>2018 · Meslek Lisesi Çıktısı</h2>
-        <p>Alanında başlangıç düzeyi yetkinlik edindin.</p>
+        <h2>2018 · Mezuniyet — Yol Ayrımı</h2>
+        <p>Alan: <strong>${state.data.flags.vocField || '—'}</strong>. Bundan sonra ne yapıyorsun?</p>
       `,
       choices: [
-        { label: 'Teknisyen olarak çalış', next: 'y2019_trade_track', effects: [ { statDelta: { money: 400, confidence: 1 } } ] },
-        { label: 'Kalfalık + sertifika', next: 'y2019_trade_track', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Üniversiteye hazırlan', next: 'y2018_uni_exam', effects: [ { statDelta: { discipline: 1 } } ] }
+        { label: '💼 Hemen işe başla',
+          next: 'y2019_trade_track',
+          effects: [ { statDelta: { money: 500, confidence: 3, intelligence: -1 } } ] },
+        { label: '🔧 Usta yanında çalış, kal',
+          next: 'y2019_trade_track',
+          effects: [ { statDelta: { confidence: 3, discipline: 3, money: -100 } } ] },
+        { label: '📝 4 yıllık üniversite sınavı',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { intelligence: 3, discipline: 2, happiness: -2, money: -100 } } ] },
       ]
     }),
     // Askerî yol akışı
-    y2018_military_choice: (state) => ({
+    y2018_military_choice: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2018 · Askerî Kariyer Kararı</h2>
+          <p>Disiplinli, zorlu ama güvenceli bir yol. Hedefin?</p>
+          ${s.health >= 70 ? '<p class="stat-note">💪 Güçlü sağlığınla yüksek rollere uygun adaysın.</p>' : ''}
+        `,
+        choices: [
+          { label: '🔰 Kısa dönem / er',
+            next: 'y2018_mil_branch',
+            effects: [ { setFlag: { milPath: 'short' } }, { statDelta: { confidence: 2, discipline: 3, happiness: -2 } } ] },
+          { label: '📋 Uzman çavuş sınavı',
+            next: 'y2018_mil_branch',
+            effects: [ { setFlag: { milPath: 'exam' } }, { statDelta: { intelligence: 3, discipline: 3, confidence: 1, happiness: -2, social: -1 } } ] },
+          { label: '⭐ Subay hedefi',
+            next: 'y2018_mil_branch',
+            conditions: [ { statGte: { key: 'intelligence', value: 60 } } ],
+            effects: [ { setFlag: { milPath: 'officer' } }, { statDelta: { intelligence: 3, confidence: 3, discipline: 2, happiness: -3, health: -1 } } ] },
+          { label: '💥 Komando seçmesi',
+            next: 'y2018_mil_branch',
+            conditions: [ { statGte: { key: 'health', value: 65 } } ],
+            effects: [ { setFlag: { milPath: 'commando' } }, { statDelta: { health: 4, endurance: 3, confidence: 3, happiness: -4, social: -2 } } ] },
+        ]
+      };
+    },
+    y2018_mil_branch: (state) => ({
       text: `
-        <h2>2018 · Askerî Yol</h2>
-        <p>Hangi kuvvet?</p>
+        <h2>2018 · Branş Seçimi</h2>
+        <p>Her branş farklı beceriler — ve farklı bedeller.</p>
       `,
       choices: [
-        { label: 'Kara', next: () => { state.data.flags.milBranch = 'land'; return 'y2019_military_training'; } },
-        { label: 'Hava', next: () => { state.data.flags.milBranch = 'air'; return 'y2019_military_training'; } },
-        { label: 'Deniz', next: () => { state.data.flags.milBranch = 'navy'; return 'y2019_military_training'; } }
+        { label: '✈️ Hava Kuvvetleri',
+          next: 'y2019_military_training',
+          effects: [ { setFlag: { milBranch: 'hava' } }, { statDelta: { intelligence: 2, focus: 2, social: -1 } } ] },
+        { label: '🪖 Kara Kuvvetleri',
+          next: 'y2019_military_training',
+          effects: [ { setFlag: { milBranch: 'kara' } }, { statDelta: { strength: 2, endurance: 2, health: -1 } } ] },
+        { label: '⚓ Deniz Kuvvetleri',
+          next: 'y2019_military_training',
+          effects: [ { setFlag: { milBranch: 'deniz' } }, { statDelta: { confidence: 2, agility: 2, happiness: -1 } } ] },
       ]
     }),
     y2019_military_training: (state) => ({
       text: `
-        <h2>2019 · Askerî Eğitim</h2>
-        <p>Branşa göre yoğun eğitim.</p>
+        <h2>2019–2020 · Askerî Eğitim</h2>
+        <p>Branş: <strong>${state.data.flags.milBranch || '—'}</strong>. Ne kadar itiyorsun?</p>
       `,
       choices: [
-        { label: 'Eğitimi tamamla', next: (() => {
-          const b = state.data.flags.milBranch; const s = state.data.stats;
-          let thr = 65; if (b === 'air') thr = 70; if (b === 'navy') thr = 68;
-          const score = Math.round(s.health*0.4 + s.endurance*0.3 + s.discipline*0.3);
-          return score >= thr ? 'y2020_military_service' : 'y2019_military_retry';
-        })() },
-        { label: 'Destek birimi iste', next: 'y2020_military_service', effects: [ { statDelta: { confidence: -1 } } ] },
-        { label: 'Sivil yola dön', next: 'y2024_career', effects: [ { statDelta: { confidence: -2 } } ] }
-      ]
-    }),
-    y2019_military_retry: (state) => ({
-      text: `
-        <h2>2019 · Tekrar Deneme</h2>
-        <p>İlk denemede zorluk yaşadın.</p>
-      `,
-      choices: [
-        { label: 'Kondisyon çalış', next: 'y2019_military_training', effects: [ { statDelta: { health: 2, endurance: 2 } } ] },
-        { label: 'Disiplin programı', next: 'y2019_military_training', effects: [ { statDelta: { discipline: 3 } } ] },
-        { label: 'Vazgeç', next: 'y2024_career' }
+        { label: '🏃 Standart eğitim',
+          next: 'y2020_military_service',
+          effects: [ { statDelta: { health: 3, discipline: 3, happiness: -2 } } ] },
+        { label: '📚 Branş kursu ekle',
+          next: 'y2020_military_service',
+          effects: [ { statDelta: { intelligence: 2, health: 2, discipline: 3, money: -100, social: -1 } } ] },
+        { label: '💪 Yoğun kamp',
+          next: 'y2020_military_service',
+          effects: [ { statDelta: { health: 5, endurance: 4, happiness: -3 } } ] },
+        { label: '👔 Sivil yola dön',
+          next: 'y2024_career',
+          effects: [ { statDelta: { confidence: -2, happiness: 2 } } ] },
       ]
     }),
     y2020_military_service: (state) => ({
       text: `
-        <h2>2020 · Görev</h2>
-        <p>Branşa göre görevler.</p>
+        <h2>2020–2021 · Görevlendirme</h2>
+        <p>Branş: <strong>${state.data.flags.milBranch || '—'}</strong>. Görev türü seç.</p>
       `,
       choices: [
-        { label: 'Görev odaklı', next: 'y2022_military_outcome', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Uzmanlık kursu', next: 'y2022_military_outcome', effects: [ { statDelta: { intelligence: 2, discipline: 1 } } ] },
-        { label: 'İzin ve aile', next: 'y2022_military_outcome', effects: [ { statDelta: { happiness: 2 } } ] }
+        { label: '🏠 Üs içi idari görev',
+          next: 'y2022_military_outcome',
+          effects: [ { statDelta: { confidence: 2, intelligence: 1, social: -1 } } ] },
+        { label: '🛡️ Sınır görevi',
+          next: 'y2022_military_outcome',
+          effects: [ { statDelta: { health: 2, endurance: 2, confidence: 2, happiness: -2, social: -1 } } ] },
+        { label: '📚 Uzmanlık kursu',
+          next: 'y2022_military_outcome',
+          effects: [ { statDelta: { intelligence: 3, discipline: 2, money: -100, social: -1 } } ] },
       ]
     }),
     y2022_military_outcome: (state) => ({
       text: `
-        <h2>2022 · Askerî Sonuç</h2>
-        <p>Kariyer yönü.</p>
+        <h2>2022 · Askerî Kariyer Seçimi</h2>
+        <p>Branş: <strong>${state.data.flags.milBranch || '—'}</strong>. Rütbe, uzmanlık ya da sektör değişikliği.</p>
       `,
       choices: [
-        { label: 'Uzman olarak devam', next: 'y2026_growth', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Sivil kariyer', next: 'y2024_career', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Akademi (subaylık)', next: 'y2027_academia', effects: [ { statDelta: { intelligence: 1, discipline: 2 } } ] }
+        { label: '🎯 Görevde derinleş, uzman ol',
+          next: 'y2026_growth',
+          effects: [ { statDelta: { confidence: 3, discipline: 3, creativity: -1 } } ] },
+        { label: '📚 Kurslar ve sertifikalar',
+          next: 'y2026_growth',
+          effects: [ { statDelta: { intelligence: 3, confidence: 2, money: -200, social: -1 } } ] },
+        { label: '👔 Erken emekli, sivile geç',
+          next: 'y2024_career',
+          effects: [ { statDelta: { happiness: 2, confidence: -1 } } ] },
       ]
     }),
     // Sanat yolu
-    y2016_artist_portfolio: (state) => ({
+    y2016_artist_portfolio: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2016 · Güzel Sanatlar — Portföy</h2>
+          <p>Hangi yönde ilerliyorsun?</p>
+          ${s.creativity >= 65 ? '<p class="stat-note">🎨 Güçlü yaratıcılığın büyük sahne için iyi temel.</p>' : ''}
+        `,
+        choices: [
+          { label: '🎼 Klasik eğitim (disiplinli)',
+            next: 'y2017_artist_stage',
+            effects: [ { statDelta: { discipline: 3, intelligence: 2, creativity: -1, happiness: -1 } } ] },
+          { label: '🎭 Karma atölye & deneysel',
+            next: 'y2017_artist_stage',
+            effects: [ { statDelta: { creativity: 4, happiness: 4, confidence: 2, discipline: -2, money: -100 } } ] },
+          { label: '🎪 Sokak performansı',
+            next: 'y2017_artist_stage',
+            effects: [ { statDelta: { confidence: 4, charisma: 3, happiness: 3, money: -50, discipline: -2 } } ] },
+        ]
+      };
+    },
+    y2017_artist_stage: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2017 · İlk Sahne Deneyimi</h2>
+          <p>Sahneye çıkma fırsatı geldi.</p>
+          ${s.confidence >= 60 ? '<p class="stat-note">📊 Özgüvenin yüksek — büyük sahneye cesaret edebilirsin.</p>' : ''}
+        `,
+        choices: [
+          { label: '🎵 Küçük salon (güvenli)',
+            next: 'y2018_artist_route',
+            effects: [ { statDelta: { confidence: 3, happiness: 2, charisma: -1 } } ] },
+          { label: '🎪 Yerel festival',
+            next: 'y2018_artist_route',
+            effects: [ { statDelta: { happiness: 4, confidence: 3, social: 2, money: -100 } } ] },
+          { label: '🎭 Büyük sahne (yüksek risk)',
+            next: 'y2018_artist_route',
+            effects: [ { statDelta: { confidence: 5, charisma: 3, happiness: 2, health: -1, money: -200 } } ] },
+          { label: '🎓 Güzel sanatlar üniversitesi',
+            next: 'y2018_artist_route',
+            conditions: [ { statGte: { key: 'creativity', value: 60 } } ],
+            effects: [ { statDelta: { creativity: 3, money: -500 } } ] },
+        ]
+      };
+    },
+    y2018_artist_route: (state) => ({
       text: `
-        <h2>2016 · Sanat Portföyü</h2>
-        <p>Portföy oluşturmaya başlıyorsun.</p>
+        <h2>2018 · Sanat Üniversitesi</h2>
+        <p>Yaratıcı ortam. Nasıl finanse edersin?</p>
       `,
       choices: [
-        { label: 'Klasik eğitim (güvenli)', next: 'y2017_artist_stage', effects: [ { statDelta: { intelligence: 2 } } ] },
-        { label: 'Karma atölye (dengeli)', next: 'y2017_artist_stage', effects: [ { statDelta: { happiness: 2, confidence: 1 } } ] },
-        { label: 'Sokak performansı (riskli)', next: 'y2017_artist_stage', effects: [ { statDelta: { happiness: 3, confidence: 2 } } ] }
-      ]
-    }),
-    y2017_artist_stage: (state) => ({
-      text: `
-        <h2>2017 · İlk Gösteri</h2>
-        <p>Sahne şansı buldun.</p>
-      `,
-      choices: [
-        { label: 'Küçük salon', next: 'y2018_artist_route', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Yerel festival', next: 'y2018_artist_route', effects: [ { statDelta: { happiness: 2, confidence: 2 } } ] },
-        { label: 'Büyük sahne', next: 'y2018_artist_route', effects: [ { statDelta: { confidence: 4, happiness: 1 } } ] }
+        { label: '🏆 Burs için portfolyo hazırla',
+          next: 'y2019_uni_start',
+          effects: [ { setFlag: { uniField: 'design' } }, { statDelta: { creativity: 4, confidence: 3, intelligence: 2, happiness: -2 } } ] },
+        { label: '💰 Özel öde, tam özgürlük',
+          next: 'y2019_uni_start',
+          effects: [ { setFlag: { uniField: 'design' } }, { statDelta: { creativity: 5, happiness: 3, money: -1500 } } ] },
+        { label: '📝 Üniversite sınavıyla gir',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { intelligence: 2, discipline: 2, happiness: -1 } } ] },
       ]
     }),
     // Çıraklık ve trade
     y2015_apprenticeship_start: (state) => ({
       text: `
-        <h2>2015 · Çıraklık</h2>
-        <p>Bir usta yanında başlıyorsun.</p>
+        <h2>2015 · Çıraklık — Meslek Seçimi</h2>
+        <p>Ustanın elinde öğreniyorsun. Hangi alan?</p>
       `,
       choices: [
-        { label: 'Elektrik (güvenli)', next: 'y2016_apprenticeship_progress', effects: [ { statDelta: { intelligence: 2 } } ] },
-        { label: 'Mobilya (dengeli)', next: 'y2016_apprenticeship_progress', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Oto tamir (riskli)', next: 'y2016_apprenticeship_progress', effects: [ { statDelta: { health: -1, confidence: 3 } } ] }
+        { label: '⚡ Elektrik tesisatı',
+          next: 'y2016_apprenticeship_progress',
+          effects: [ { addTrait: 'elektrikCirak' }, { statDelta: { intelligence: 3, confidence: 3, health: -1 } } ] },
+        { label: '🪑 Mobilya & marangozluk',
+          next: 'y2016_apprenticeship_progress',
+          effects: [ { addTrait: 'mobilyaCirak' }, { statDelta: { creativity: 3, confidence: 3, discipline: 2, strength: -1 } } ] },
+        { label: '🚗 Oto tamir & servis',
+          next: 'y2016_apprenticeship_progress',
+          effects: [ { addTrait: 'otoCirak' }, { statDelta: { strength: 3, confidence: 4, health: -2, intelligence: -1 } } ] },
       ]
     }),
     y2016_apprenticeship_progress: (state) => ({
       text: `
-        <h2>2016 · Ustalığa Doğru</h2>
-        <p>Tecrübe kazanıyorsun.</p>
+        <h2>2016–2018 · Ustalığa Doğru</h2>
+        <p>Usta-çırak ilişkisi öğretici. Bir yol seç.</p>
       `,
       choices: [
-        { label: 'Sertifika (güvenli)', next: 'y2018_apprenticeship_outcome', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Yan iş (dengeli)', next: 'y2018_apprenticeship_outcome', effects: [ { statDelta: { money: 200 } } ] },
-        { label: 'Dükkan denemesi (riskli)', next: 'y2018_apprenticeship_outcome', effects: [ { statDelta: { money: -300, confidence: 2 } } ] }
+        { label: '📜 Sertifika al, kalfalık belgesi hedefle',
+          next: 'y2018_apprenticeship_outcome',
+          effects: [ { statDelta: { confidence: 4, discipline: 3, money: -100 } } ] },
+        { label: '💵 Yan iş al, para biriktir',
+          next: 'y2018_apprenticeship_outcome',
+          effects: [ { statDelta: { money: 350, health: -2, focus: -1 } } ] },
+        { label: '🏪 Küçük dükkan denemesi',
+          next: 'y2018_apprenticeship_outcome',
+          effects: [ { setFlag: { smallBizTried: true } }, { statDelta: { money: -400, confidence: 5, happiness: -1 } } ] },
       ]
     }),
     y2018_apprenticeship_outcome: (state) => ({
       text: `
-        <h2>2018 · Ustalık Çıktısı</h2>
-        <p>Meslekte ilerleme.</p>
+        <h2>2018 · Usta Yolunda İlerleme</h2>
+        <p>Tecrübe ve güven gelişti. Şimdi ne yapıyorsun?</p>
       `,
       choices: [
-        { label: 'Meslekte devam', next: 'y2019_trade_track', effects: [ { statDelta: { money: 400, confidence: 1 } } ] },
-        { label: 'Ustalık belgesi', next: 'y2019_trade_track', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Üniversiteye hazırlan', next: 'y2018_uni_exam' }
+        { label: '🔨 Meslekte devam, müşteri kazan',
+          next: 'y2019_trade_track',
+          effects: [ { statDelta: { money: 700, confidence: 3, intelligence: -1 } } ] },
+        { label: '🏅 Ustalık belgesi için hazırlan',
+          next: 'y2019_trade_track',
+          effects: [ { statDelta: { confidence: 4, discipline: 2, money: -100 } } ] },
+        { label: '🎓 Üniversiteye de hazırlan',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { intelligence: 2, money: -200 } } ] },
       ]
     }),
     y2019_trade_track: (state) => ({
@@ -500,100 +662,195 @@ function getScenes() {
         { label: 'Hızlı büyüme', next: 'y2025_outcome', effects: [ { statDelta: { money: -1500, confidence: 3 } } ] }
       ]
     }),
-    y2016_projects: (state) => ({
-      text: `
-        <h2>2016 · Projeler ve Kulüpler</h2>
-        <p>Okulda proje/kulüp çalışmalarına katılma şansın var.</p>
-      `,
-      choices: [
-        { label: 'Bilim projesi (güvenli)', next: 'y2016_proj_science', effects: [ { statDelta: { intelligence: 6, confidence: 3 } } ] },
-        { label: 'Sosyal sorumluluk (dengeli)', next: 'y2016_proj_social', effects: [ { statDelta: { social: 6, happiness: 3 } } ] },
-        { label: 'Spor turnuvası (riskli)', next: 'y2016_proj_sport', effects: [ { statDelta: { health: 6, confidence: 2 } } ] }
-      ]
-    }),
+    y2016_projects: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2016–2018 · Lise Yılları</h2>
+          <p>Hem akademik hem sosyal fırsatlar var. Zamanını nasıl şekillendirirsin?</p>
+          ${s.focus >= 55 ? '<p class="stat-note">📊 İyi odak seviyenle proje liderliğine uygunsun.</p>' : ''}
+        `,
+        choices: [
+          { label: '🔬 Bilim projesi ve olimpiyatlar',
+            next: 'y2016_proj_science',
+            effects: [ { statDelta: { intelligence: 8, focus: 4, confidence: 3, social: -3, happiness: -2 } } ] },
+          { label: '🤝 Öğrenci konseyi & sosyal proje',
+            next: 'y2016_proj_social',
+            effects: [ { statDelta: { social: 8, charisma: 4, confidence: 3, intelligence: -2, focus: -2 } } ] },
+          { label: '🏅 Spor takımı & turnuvalar',
+            next: 'y2016_proj_sport',
+            effects: [ { statDelta: { health: 8, endurance: 4, confidence: 3, intelligence: -2, focus: -1 } }, { numberDelta: { training: 1 } } ] },
+          { label: '🎨 Sanat / tiyatro kulübü',
+            next: 'y2018_uni_exam',
+            conditions: [ { statGte: { key: 'creativity', value: 45 } } ],
+            effects: [ { statDelta: { creativity: 7, social: 3, happiness: 4, discipline: -2, intelligence: -1 } } ] },
+        ]
+      };
+    },
     y2016_proj_science: (state) => ({
       text: `
         <h2>2016 · Bilim Projesi</h2>
-        <p>Proje türü seç.</p>
+        <p>Hangi yönde derinleşiyorsun?</p>
       `,
       choices: [
-        { label: 'Deney tasarımı', next: 'y2018_uni_exam', effects: [ { statDelta: { intelligence: 2, discipline: 1 } } ] },
-        { label: 'Sunum hazırlığı', next: 'y2018_uni_exam', effects: [ { statDelta: { confidence: 2, focus: 1 } } ] },
-        { label: 'Takım projesi', next: 'y2018_uni_exam', effects: [ { statDelta: { social: 2, intelligence: 1 } } ] }
+        { label: '🧪 Deney tasarımı',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { intelligence: 4, discipline: 2, focus: 2, social: -1 } } ] },
+        { label: '🎤 Sunum ve konferans',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { confidence: 4, charisma: 2, focus: 1, intelligence: -1 } } ] },
+        { label: '👥 Uluslararası takım projesi',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { social: 3, intelligence: 2, confidence: 2, discipline: -1 } } ] },
       ]
     }),
     y2016_proj_social: (state) => ({
       text: `
         <h2>2016 · Sosyal Sorumluluk</h2>
-        <p>Odak alanı seç.</p>
+        <p>Hangi alana odaklanıyorsun?</p>
       `,
       choices: [
-        { label: 'Çevre', next: 'y2018_uni_exam', effects: [ { statDelta: { empathy: 1, social: 2 } } ] },
-        { label: 'Eğitim', next: 'y2018_uni_exam', effects: [ { statDelta: { intelligence: 1, social: 1 } } ] },
-        { label: 'Yoksullukla mücadele', next: 'y2018_uni_exam', effects: [ { statDelta: { empathy: 2 } } ] }
+        { label: '🌱 Çevre ve sürdürülebilirlik',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { empathy: 3, social: 3, happiness: 2, discipline: -1 } } ] },
+        { label: '📚 Gönüllü eğitim ve öğretmenlik',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { intelligence: 2, social: 3, confidence: 2, empathy: 2 } } ] },
+        { label: '🤲 Yardım kampanyaları',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { empathy: 4, social: 2, happiness: 3, money: -100 } } ] },
       ]
     }),
     y2016_proj_sport: (state) => ({
       text: `
         <h2>2016 · Spor Turnuvası</h2>
-        <p>Hazırlık yöntemi.</p>
+        <p>Sahada güçleniyorsun.</p>
       `,
       choices: [
-        { label: 'Düzenli antrenman', next: 'y2018_uni_exam', effects: [ { statDelta: { health: 1, endurance: 1 } }, { numberDelta: { training: 1 } } ] },
-        { label: 'Taktik analizi', next: 'y2018_uni_exam', effects: [ { statDelta: { intelligence: 1, confidence: 1 } } ] },
-        { label: 'Motivasyon', next: 'y2018_uni_exam', effects: [ { statDelta: { confidence: 2 } } ] }
+        { label: '🏋️ Profesyonel antrenman',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { health: 4, endurance: 3, discipline: 2, intelligence: -1 } }, { numberDelta: { training: 2 } } ] },
+        { label: '🧠 Taktik ve video analizi',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { intelligence: 2, focus: 2, confidence: 2 } }, { numberDelta: { training: 1 } } ] },
+        { label: '🤝 Takım dayanışması',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { social: 3, confidence: 3, health: 2 } }, { numberDelta: { training: 1 } } ] },
       ]
     }),
-    y2018_uni_exam: (state) => ({
+    y2018_uni_exam: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2018 · Üniversite Sınavı</h2>
+          <p>YKS hazırlık stratejin sıralamanda fark yaratacak.</p>
+          ${s.intelligence >= 70
+            ? '<p class="stat-note">📊 Güçlü zekânla yoğun çalışma çok verimli olur.</p>'
+            : s.discipline >= 60
+            ? '<p class="stat-note">📊 Disiplinin var — düzenli çalışma sistematik ilerleme sağlar.</p>'
+            : '<p class="stat-note">📊 Denge kur — hem çalış hem kendine bak.</p>'}
+        `,
+        choices: [
+          { label: '🔥 Yoğun çalış, üst hedef',
+            next: 'y2019_uni_start',
+            effects: [ { statDelta: { intelligence: 12, discipline: 5, happiness: -5, health: -3, social: -3 } } ] },
+          { label: '⚖️ Dengeli hazırlan',
+            next: 'y2019_uni_start',
+            effects: [ { statDelta: { intelligence: 7, social: 2, happiness: -1, focus: -1 } } ] },
+          { label: '😌 Kısıtlı çalış',
+            next: 'y2019_uni_start',
+            effects: [ { statDelta: { happiness: 3, social: 2, intelligence: -3, discipline: -2 } } ] },
+          { label: '📅 Gap year (ara yıl)',
+            next: 'y2018_gap_year',
+            effects: [ { statDelta: { happiness: 3, confidence: 2, intelligence: -1 } } ] },
+        ]
+      };
+    },
+    y2018_gap_year: (state) => ({
       text: `
-        <h2>2018 · Üniversite Sınavı</h2>
-        <p>Sınav hazırlığı ve tercih süreci başlıyor.</p>
+        <h2>2018 · Ara Yıl</h2>
+        <p>Sınav baskısından uzak bir yıl. Nasıl kullanıyorsun?</p>
       `,
       choices: [
-        { label: 'Yoğun çalış (hedef yüksek)', next: 'y2019_uni_start', effects: [ { statDelta: { intelligence: 10, happiness: -4 } } ] },
-        { label: 'Dengeli hazırla', next: 'y2019_uni_start', effects: [ { statDelta: { intelligence: 6 } } ] },
-        { label: 'Kısıtlı hazırlan', next: 'y2019_uni_start', effects: [ { statDelta: { intelligence: 2, happiness: 2 } } ] },
-        { label: 'Ara ver (gap year)', next: 'y2018_gap_year', effects: [ { statDelta: { happiness: 2 } } ] }
+        { label: '✈️ Yurt dışı deneyimi',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { confidence: 4, social: 3, happiness: 4, money: -500 } }, { numberDelta: { travelCount: 1 } } ] },
+        { label: '💼 Staj / çalışma',
+          next: 'y2018_uni_exam',
+          effects: [ { statDelta: { confidence: 4, money: 600, health: -1 } } ] },
+        { label: '📚 Sadece hazırlan',
+          next: 'y2019_uni_start',
+          effects: [ { statDelta: { intelligence: 8, discipline: 4, happiness: -3, social: -2 } } ] },
       ]
     }),
-    y2019_uni_start: (state) => ({
-      text: `
-        <h2>2019 · Üniversite</h2>
-        <p>Üniversiteye başlıyorsun. Bölüm ve çevre hayatını şekillendiriyor.</p>
-      `,
-      choices: [
-        { label: 'Mühendislik/BT alanı', next: 'y2019_uni_life', effects: [ { statDelta: { intelligence: 4, confidence: 2 } }, { setFlag: { uniField: 'stem' } } ] },
-        { label: 'İktisadi/İdari bilimler', next: 'y2019_uni_life', effects: [ { statDelta: { social: 3 } }, { setFlag: { uniField: 'econ' } } ] },
-        { label: 'Sanat/Tasarım', next: 'y2019_uni_life', effects: [ { statDelta: { happiness: 4, confidence: 2 } }, { setFlag: { uniField: 'design' } } ] }
-      ]
-    }),
-    y2019_uni_life: (state) => ({
-      text: `
-        <h2>2019 · Kampüs Yaşamı</h2>
-        <p>Kampüste ilk kararların.</p>
-      `,
-      choices: [
-        { label: 'Yurt ve çalışma planı', next: 'y2019_uni_check', effects: [ { statDelta: { discipline: 2, focus: 2 } } ] },
-        { label: 'Part-time iş', next: 'y2019_uni_check', effects: [ { statDelta: { money: 400, confidence: 1 } } ] },
-        { label: 'Kulüplere ağırlık ver', next: 'y2019_uni_check', effects: [ { statDelta: { social: 2, happiness: 1 } } ] }
-      ]
-    }),
+    y2019_uni_start: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2019 · Üniversite — Bölüm Seçimi</h2>
+          <p>Yeni şehir, yeni özgürlük. Her bölümün kazancı ve bedeli farklı.</p>
+          ${s.intelligence >= 68
+            ? '<p class="stat-note">📊 Güçlü zekânla teknik bölümler için çok uygun adaysın.</p>'
+            : ''}
+        `,
+        choices: [
+          { label: '⚙️ Mühendislik / Bilgisayar',
+            next: 'y2019_uni_life',
+            conditions: [ { statGte: { key: 'intelligence', value: 58 } } ],
+            effects: [ { setFlag: { uniField: 'stem' } }, { statDelta: { intelligence: 5, focus: 3, social: -3, happiness: -2, money: -300 } } ] },
+          { label: '📊 İktisat / İşletme',
+            next: 'y2019_uni_life',
+            effects: [ { setFlag: { uniField: 'econ' } }, { statDelta: { social: 4, confidence: 2, intelligence: -1, focus: -1 } } ] },
+          { label: '🏛️ Mimarlık / Tasarım',
+            next: 'y2019_uni_life',
+            conditions: [ { statGte: { key: 'creativity', value: 48 } } ],
+            effects: [ { setFlag: { uniField: 'design' } }, { statDelta: { creativity: 5, focus: 3, money: -400, happiness: -2 } } ] },
+        ]
+      };
+    },
+    y2019_uni_life: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2019 · Kampüs Yaşamı</h2>
+          <p>Ders dışında zamanını nasıl şekillendirirsin?</p>
+          ${s.discipline >= 60
+            ? '<p class="stat-note">📊 Disiplinin güçlü — yoğun program sana ağır gelmez.</p>'
+            : '<p class="stat-note">📊 Kampüs özgürlüğü dikkatini dağıtabilir; rutin kur.</p>'}
+        `,
+        choices: [
+          { label: '📅 Yurt + katı çalışma planı',
+            next: 'y2019_uni_check',
+            effects: [ { statDelta: { discipline: 4, focus: 3, happiness: -2, social: -2 } } ] },
+          { label: '💼 Part-time iş',
+            next: 'y2019_uni_check',
+            effects: [ { statDelta: { money: 500, confidence: 3, discipline: 1, happiness: -1, focus: -2 } } ] },
+          { label: '🤝 Kulüpler & sosyal hayat',
+            next: 'y2019_uni_check',
+            effects: [ { statDelta: { social: 5, charisma: 2, happiness: 3, discipline: -2, focus: -2 } } ] },
+        ]
+      };
+    },
     y2019_uni_check: (state) => ({
       text: `
-        <h2>2019 · Bölüm Kabul Kontrolü</h2>
-        <p>Bölüm gereksinimlerine göre değerlendiriliyorsun.</p>
+        <h2>2019 · Kabul Kontrolü</h2>
+        <p>Bölüm gereksinimlerine göre değerlendiriliyorsun…</p>
       `,
       choices: [
-        { label: 'Değerlendir', next: (() => {
-          const s = state.data.stats; const f = state.data.flags.uniField;
-          let score = 0, threshold = 0;
-          if (f === 'stem') { score = Math.round(s.intelligence*0.6 + s.focus*0.25 + s.discipline*0.15); threshold = 65; }
-          else if (f === 'design') { score = Math.round(s.creativity*0.6 + s.confidence*0.2 + s.focus*0.2); threshold = 60; }
-          else { score = Math.round(s.intelligence*0.4 + s.social*0.3 + s.confidence*0.3); threshold = 55; }
-          return score >= threshold ? 'y2020_pandemic' : 'y2019_uni_prep';
-        })() },
-        { label: 'B planı: Bölüm değiştir', next: 'y2019_change_major' },
-        { label: 'Hazırlık kampı (ücretli)', next: 'y2019_uni_prep', effects: [ { statDelta: { money: -400, focus: 2, discipline: 2 } } ] }
+        { label: 'Sonucu gör',
+          next: (state) => {
+            const s = state.data.stats; const f = state.data.flags.uniField;
+            let score = 0, threshold = 0;
+            if (f === 'stem') { score = Math.round(s.intelligence*0.55 + s.focus*0.25 + s.discipline*0.2); threshold = 62; }
+            else if (f === 'design') { score = Math.round(s.creativity*0.55 + s.confidence*0.25 + s.focus*0.2); threshold = 58; }
+            else { score = Math.round(s.intelligence*0.4 + s.social*0.35 + s.confidence*0.25); threshold = 52; }
+            return score >= threshold ? 'y2020_pandemic' : 'y2019_uni_prep';
+          } },
+        { label: '🔄 Bölüm değiştir',
+          next: 'y2019_change_major' },
+        { label: '📚 Hazırlık kampı (ücretli)',
+          next: 'y2019_uni_prep',
+          effects: [ { statDelta: { money: -400, focus: 2, discipline: 2, intelligence: 2 } } ] },
       ]
     }),
     y2019_change_major: (state) => ({
@@ -602,53 +859,92 @@ function getScenes() {
         <p>Yeteneklerine daha uygun bir alana yöneliyorsun.</p>
       `,
       choices: [
-        { label: 'STEM seç', next: 'y2019_uni_check', effects: [ { setFlag: { uniField: 'stem' } }, { statDelta: { confidence: 1 } } ] },
-        { label: 'Tasarım/Sanat seç', next: 'y2019_uni_check', effects: [ { setFlag: { uniField: 'design' } }, { statDelta: { happiness: 1 } } ] },
-        { label: 'İktisadi/İdari seç', next: 'y2019_uni_check', effects: [ { setFlag: { uniField: 'econ' } } ] }
+        { label: '⚙️ Mühendislik / STEM',
+          next: 'y2019_uni_check',
+          effects: [ { setFlag: { uniField: 'stem' } }, { addTrait: 'multiDisciplinary' }, { statDelta: { confidence: 1, intelligence: 1 } } ] },
+        { label: '🎨 Tasarım / Sanat',
+          next: 'y2019_uni_check',
+          effects: [ { setFlag: { uniField: 'design' } }, { addTrait: 'multiDisciplinary' }, { statDelta: { happiness: 2, creativity: 1 } } ] },
+        { label: '📊 İktisadi / İdari',
+          next: 'y2019_uni_check',
+          effects: [ { setFlag: { uniField: 'econ' } }, { addTrait: 'multiDisciplinary' }, { statDelta: { social: 1 } } ] },
       ]
     }),
     y2019_uni_prep: (state) => ({
       text: `
-        <h2>2019 · Hazırlık ve Destek</h2>
-        <p>Gereksinimler için ek hazırlık yapman gerekiyor.</p>
+        <h2>2019 · Hazırlık Desteği</h2>
+        <p>Eşiğin biraz altındasın. Ne yapıyorsun?</p>
       `,
       choices: [
-        { label: 'Güvenli: Etüt ve danışmanlık', next: 'y2020_pandemic', effects: [ { statDelta: { intelligence: 2, focus: 2, discipline: 2 } } ] },
-        { label: 'Dengeli: Kulüp ve çalışma grubu', next: 'y2020_pandemic', effects: [ { statDelta: { social: 2, confidence: 1, focus: 1 } } ] },
-        { label: 'Riskli: Tek başıma denerim', next: 'y2020_pandemic', effects: [ { statDelta: { confidence: 2 } } ] }
+        { label: '📖 Etüt ve mentorluk',
+          next: 'y2020_pandemic',
+          effects: [ { statDelta: { intelligence: 3, focus: 3, discipline: 2, money: -200, social: -1 } } ] },
+        { label: '👥 Çalışma grubu',
+          next: 'y2020_pandemic',
+          effects: [ { statDelta: { social: 3, confidence: 2, focus: 2, intelligence: -1 } } ] },
+        { label: '💪 Tek başıma hallederim',
+          next: 'y2020_pandemic',
+          effects: [ { statDelta: { confidence: 3, intelligence: 1, happiness: -1 } } ] },
       ]
     }),
-    y2020_pandemic: (state) => ({
-      text: `
-        <h2>2020 · Pandemi</h2>
-        <p>Uzaktan eğitim ve belirsizlik.</p>
-      `,
-      choices: [
-        { label: 'Program oluştur', next: 'y2020_pandemic_schedule', effects: [ { statDelta: { intelligence: 4, confidence: 3, happiness: 1 } } ] },
-        { label: 'Aileyle vakit', next: 'y2020_pandemic_family', effects: [ { statDelta: { happiness: 4, social: 3 } } ] },
-        { label: 'Gönüllülük', next: 'y2020_pandemic_volunteer', effects: [ { statDelta: { social: 5, confidence: 2 } } ] }
-      ]
-    }),
+    y2020_pandemic: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2020 · Pandemi — Herkes Evde</h2>
+          <p>Dünya durdu. Uzaktan eğitim, belirsizlik. Nasıl geçiriyorsun?</p>
+          ${s.discipline >= 60
+            ? '<p class="stat-note">📊 Disiplinin güçlü — evde bile üretken kalabilirsin.</p>'
+            : '<p class="stat-note">📊 Ev ortamı odaklanmayı zorlaştırıyor.</p>'}
+        `,
+        choices: [
+          { label: '📅 Günlük rutin, üretken kal',
+            next: 'y2020_pandemic_schedule',
+            effects: [ { statDelta: { intelligence: 5, discipline: 4, confidence: 3, happiness: -3, social: -4 } } ] },
+          { label: '👨‍👩‍👧 Aile bağlarını güçlendir',
+            next: 'y2020_pandemic_family',
+            effects: [ { statDelta: { happiness: 6, empathy: 3, social: 4, intelligence: -2, discipline: -2 } } ] },
+          { label: '🤝 Gönüllülük ve topluma destek',
+            next: 'y2020_pandemic_volunteer',
+            effects: [ { statDelta: { social: 6, empathy: 4, confidence: 3, money: -200, health: -1 } } ] },
+          { label: '🎨 Yeni beceri öğren (online)',
+            next: 'y2021_remote_intern',
+            effects: [ { statDelta: { creativity: 4, intelligence: 3, social: -3, happiness: -2 } } ] },
+        ]
+      };
+    },
     y2020_pandemic_schedule: (state) => ({
       text: `
         <h2>2020 · Günlük Plan</h2>
         <p>Planı nasıl uygularsın?</p>
       `,
       choices: [
-        { label: 'Pomodoro', next: 'y2021_remote_intern', effects: [ { statDelta: { focus: 2 } } ] },
-        { label: 'Çalışma grubu', next: 'y2021_remote_intern', effects: [ { statDelta: { social: 1, confidence: 1 } } ] },
-        { label: 'Derin çalışma', next: 'y2021_remote_intern', effects: [ { statDelta: { focus: 2, discipline: 1 } } ] }
+        { label: '🍅 Pomodoro tekniği',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { focus: 4, discipline: 2, happiness: -1 } } ] },
+        { label: '👥 Online çalışma grubu',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { social: 3, confidence: 2, focus: 1 } } ] },
+        { label: '🧘 Derin çalışma blokları',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { focus: 3, discipline: 3, intelligence: 2, social: -2 } } ] },
       ]
     }),
     y2020_pandemic_family: (state) => ({
       text: `
         <h2>2020 · Aile Zamanı</h2>
-        <p>Birlikte yapılacaklar.</p>
+        <p>Evde birlikte ne yaparsınız?</p>
       `,
       choices: [
-        { label: 'Yemek yapma', next: 'y2021_remote_intern', effects: [ { statDelta: { happiness: 1, social: 1 } } ] },
-        { label: 'Film gecesi', next: 'y2021_remote_intern', effects: [ { statDelta: { happiness: 1 } } ] },
-        { label: 'Ev düzeni', next: 'y2021_remote_intern', effects: [ { statDelta: { discipline: 1 } } ] }
+        { label: '🍳 Birlikte yemek ve sohbet',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { happiness: 3, empathy: 2, social: 2 } } ] },
+        { label: '📚 Aile okuma/öğrenme saatleri',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { intelligence: 2, focus: 1, happiness: 2, empathy: 1 } } ] },
+        { label: '🏠 Ev düzeni ve sorumluluk paylaşımı',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { discipline: 3, empathy: 2, confidence: 1, happiness: -1 } } ] },
       ]
     }),
     y2020_pandemic_volunteer: (state) => ({
@@ -657,235 +953,436 @@ function getScenes() {
         <p>Nerede katkı sağlarsın?</p>
       `,
       choices: [
-        { label: 'Lojistik', next: 'y2021_remote_intern', effects: [ { statDelta: { endurance: 1, empathy: 1 } } ] },
-        { label: 'Online mentorluk', next: 'y2021_remote_intern', effects: [ { statDelta: { social: 1, intelligence: 1 } } ] },
-        { label: 'Bağış toplama', next: 'y2021_remote_intern', effects: [ { statDelta: { social: 1, confidence: 1 } } ] }
+        { label: '🚛 Lojistik ve dağıtım',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { endurance: 2, empathy: 2, confidence: 2, health: -1 } } ] },
+        { label: '💻 Online mentorluk',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { social: 3, intelligence: 2, confidence: 2 } } ] },
+        { label: '📣 Farkındalık kampanyası',
+          next: 'y2021_remote_intern',
+          effects: [ { statDelta: { social: 2, charisma: 2, confidence: 2, money: -50 } } ] },
       ]
     }),
-    y2021_remote_intern: (state) => ({
-      text: `
-        <h2>2021 · Uzaktan Deneyim</h2>
-        <p>Staj/part-time iş fırsatı.</p>
-      `,
-      choices: [
-        { label: 'Stajı kabul et', next: 'y2021_branch_intern', effects: [ { statDelta: { confidence: 4, money: 500 } } ] },
-        { label: 'Sertifika programı', next: 'y2021_branch_cert', effects: [ { statDelta: { intelligence: 5, confidence: 2 } } ] },
-        { label: 'Dinlen', next: 'y2021_branch_rest', effects: [ { statDelta: { happiness: 4, health: 3 } } ] }
-      ]
-    }),
+    y2021_remote_intern: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2021 · İlk Profesyonel Adım</h2>
+          <p>Pandemi sonrası fırsatlar geliyor. Ne yapıyorsun?</p>
+          ${s.confidence >= 60
+            ? '<p class="stat-note">📊 Özgüvenin güçlü — teklifi değerlendir.</p>'
+            : ''}
+        `,
+        choices: [
+          { label: '💼 Uzaktan stajı kabul et',
+            next: 'y2021_branch_intern',
+            effects: [ { statDelta: { confidence: 5, money: 600, health: -2, happiness: -1 } } ] },
+          { label: '📜 Sertifika programı',
+            next: 'y2021_branch_cert',
+            effects: [ { statDelta: { intelligence: 6, confidence: 3, money: -300, social: -2 } } ] },
+          { label: '💻 Freelance proje üstlen',
+            next: 'y2021_branch_intern',
+            effects: [ { statDelta: { money: 700, confidence: 4, creativity: 2, health: -2, social: -2 } } ] },
+          { label: '🛌 Dinlen ve toparlan',
+            next: 'y2021_branch_rest',
+            effects: [ { addTrait: 'sabirli' }, { statDelta: { happiness: 5, health: 4, intelligence: -2, money: -200 } } ] },
+        ]
+      };
+    },
     y2021_branch_intern: (state) => ({
       text: `
-        <h2>2021 · Staj</h2>
-        <p>Staj sürecini nasıl değerlendirirsin?</p>
+        <h2>2021 · Staj Süreci</h2>
+        <p>Çalışma tarzını nasıl şekillendiriyorsun?</p>
       `,
       choices: [
-        { label: 'Mentor bul', next: 'y2022_economy', effects: [ { statDelta: { social: 1, confidence: 1 } } ] },
-        { label: 'Görev odaklı', next: 'y2022_economy', effects: [ { statDelta: { discipline: 1 } } ] },
-        { label: 'Ağ kur', next: 'y2022_economy', effects: [ { statDelta: { social: 2 } } ] }
+        { label: '🧑‍🏫 Mentor bul, derin öğren',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { social: 2, confidence: 3, intelligence: 2, money: -50 } } ] },
+        { label: '🎯 Görev odaklı, sonuç getir',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { discipline: 3, confidence: 2, focus: 2, happiness: -1 } } ] },
+        { label: '🤝 Ağ kur, bağlantılar oluştur',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { social: 4, charisma: 2, confidence: 2, focus: -1 } } ] },
       ]
     }),
     y2021_branch_cert: (state) => ({
       text: `
-        <h2>2021 · Sertifika</h2>
-        <p>Hangi içerik?</p>
+        <h2>2021 · Sertifika Programı</h2>
+        <p>Hangi seviyede ilerliyorsun?</p>
       `,
       choices: [
-        { label: 'Temel', next: 'y2022_economy', effects: [ { statDelta: { intelligence: 1 } } ] },
-        { label: 'Orta', next: 'y2022_economy', effects: [ { statDelta: { intelligence: 2, focus: 1 } } ] },
-        { label: 'İleri', next: 'y2022_economy', effects: [ { statDelta: { intelligence: 3, discipline: 1 } } ] }
+        { label: '📗 Temel sertifika',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { intelligence: 2, confidence: 1 } } ] },
+        { label: '📘 Orta seviye uzmanlık',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { intelligence: 4, focus: 2, money: -100 } } ] },
+        { label: '📕 İleri uzmanlık (yoğun)',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { intelligence: 6, discipline: 2, focus: 2, happiness: -2, money: -200 } } ] },
       ]
     }),
     y2021_branch_rest: (state) => ({
       text: `
-        <h2>2021 · Dinlenme</h2>
-        <p>Neye odaklanırsın?</p>
+        <h2>2021 · Öz Bakım Dönemi</h2>
+        <p>Duraksadın. Nasıl değerlendiriyorsun?</p>
       `,
       choices: [
-        { label: 'Aile', next: 'y2022_economy', effects: [ { statDelta: { happiness: 1, empathy: 1 } } ] },
-        { label: 'Sağlık', next: 'y2022_economy', effects: [ { statDelta: { health: 2 } } ] },
-        { label: 'Hobi', next: 'y2022_economy', effects: [ { statDelta: { happiness: 1, creativity: 1 } } ] }
+        { label: '🧘 Meditasyon ve nefes',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { health: 4, happiness: 4, focus: 2, social: -1, intelligence: -1 } } ] },
+        { label: '🏃 Spor rutini kur',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { health: 6, endurance: 4, confidence: 3, intelligence: -1 } } ] },
+        { label: '📚 Yeniden öğrenmeye başla',
+          next: 'y2022_economy',
+          effects: [ { statDelta: { intelligence: 4, confidence: 3, happiness: -2 } } ] },
       ]
     }),
-    y2022_economy: (state) => ({
-      text: `
-        <h2>2022 · Bütçe</h2>
-        <p>Maliyetler arttı, bütçe yönetimi.</p>
-      `,
-      choices: [
-        { label: 'Giderleri optimize et', next: 'y2022_path_optimize', effects: [ { statDelta: { confidence: 2, happiness: -1 } } ] },
-        { label: 'Aile desteği', next: 'y2022_path_support2', effects: [ { statDelta: { money: 600, happiness: 2 } } ] },
-        { label: 'Freelance çalış', next: 'y2022_path_freelance', effects: [ { statDelta: { money: 800, confidence: 3, happiness: -1 } } ] }
-      ]
-    }),
+    y2022_economy: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2022 · Enflasyon Gerçeği</h2>
+          <p>Maliyetler tırmandı. Bütçe yönetimi artık bir beceri.</p>
+          ${s.money >= 500
+            ? '<p class="stat-note">💰 Birikiminle birkaç seçeneği değerlendirebilirsin.</p>'
+            : '<p class="stat-note">📊 Sıkışık bütçeyle yaratıcı çözümler zorunlu.</p>'}
+        `,
+        choices: [
+          { label: '✂️ Giderleri optimize et',
+            next: 'y2022_path_optimize',
+            effects: [ { statDelta: { discipline: 3, confidence: 2, happiness: -3, social: -2 } } ] },
+          { label: '💼 Ek gelir kaynağı bul',
+            next: 'y2022_path_freelance',
+            effects: [ { statDelta: { money: 900, confidence: 4, health: -2, happiness: -2 } } ] },
+          { label: '👨‍👩‍👧 Aile desteği al',
+            next: 'y2022_path_support2',
+            conditions: [ { traitIncludes: 'babaSevgisi' } ],
+            effects: [ { statDelta: { money: 700, happiness: 3, confidence: -2 } } ] },
+          { label: '📈 Birikimi değerlendir',
+            next: 'y2023_volunteer',
+            conditions: [ { flagEquals: { key: 'savingsDiscipline', value: true } } ],
+            effects: [ { statDelta: { money: 600, confidence: 3, social: -1 } } ] },
+        ]
+      };
+    },
     y2022_path_optimize: (state) => ({
       text: `
-        <h2>2022 · Optimizasyon</h2>
-        <p>Hangi kalemler?</p>
+        <h2>2022 · Tasarruf Stratejisi</h2>
+        <p>Hangi kalemleri kısıyorsun?</p>
       `,
       choices: [
-        { label: 'Barınma', next: 'y2023_volunteer', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Ulaşım', next: 'y2023_volunteer', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Gıda', next: 'y2023_volunteer', effects: [ { statDelta: { discipline: 1 } } ] }
+        { label: '🏠 Paylaşımlı konut',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { money: 300, social: 1, happiness: -1 } } ] },
+        { label: '🚌 Ulaşım optimizasyonu',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { money: 200, discipline: 2 } } ] },
+        { label: '🛒 Gıda planlaması',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { money: 150, discipline: 3, creativity: 1 } } ] },
       ]
     }),
     y2022_path_support2: (state) => ({
       text: `
-        <h2>2022 · Destek</h2>
-        <p>Kaynağı nasıl kullanırsın?</p>
+        <h2>2022 · Aile Desteği</h2>
+        <p>Destek kaynağını nasıl kullanıyorsun?</p>
       `,
       choices: [
-        { label: 'Eğitim', next: 'y2023_volunteer', effects: [ { statDelta: { intelligence: 1 } } ] },
-        { label: 'Sağlık', next: 'y2023_volunteer', effects: [ { statDelta: { health: 1 } } ] },
-        { label: 'Sosyal', next: 'y2023_volunteer', effects: [ { statDelta: { social: 1 } } ] }
+        { label: '📚 Eğitim yatırımı',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { intelligence: 3, confidence: 1, money: -100 } } ] },
+        { label: '🏥 Sağlık ve psikolojik destek',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { health: 3, happiness: 3, confidence: 2 } } ] },
+        { label: '🤝 Sosyal aktiviteler',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { social: 3, happiness: 3, charisma: 1 } } ] },
       ]
     }),
     y2022_path_freelance: (state) => ({
       text: `
-        <h2>2022 · Freelance</h2>
-        <p>Hangi tarz işler?</p>
+        <h2>2022 · Ek Gelir Stratejisi</h2>
+        <p>Hangi tarz işler alıyorsun?</p>
       `,
       choices: [
-        { label: 'Kısa işler', next: 'y2023_volunteer', effects: [ { statDelta: { money: 200 } } ] },
-        { label: 'Uzun kontrat', next: 'y2023_volunteer', effects: [ { statDelta: { money: 500, focus: 1 } } ] },
-        { label: 'Proje tabanlı', next: 'y2023_volunteer', effects: [ { statDelta: { money: 300, confidence: 1 } } ] }
+        { label: '⚡ Kısa ve hızlı işler',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { money: 400, agility: 1, focus: -1 } } ] },
+        { label: '📋 Uzun vadeli kontrat',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { money: 700, discipline: 2, focus: 1, happiness: -1 } } ] },
+        { label: '🚀 Proje tabanlı, uzmanlık alanı',
+          next: 'y2023_volunteer',
+          effects: [ { statDelta: { money: 550, intelligence: 2, confidence: 2 } } ] },
       ]
     }),
-    y2023_volunteer: (state) => ({
-      text: `
-        <h2>2023 · Dayanışma</h2>
-        <p>Katkı sağlamak ister misin?</p>
-      `,
-      choices: [
-        { label: 'Gönüllü çalış', next: 'y2023_path_vol', effects: [ { statDelta: { social: 6, confidence: 3, happiness: 2 } } ] },
-        { label: 'Maddi destek', next: 'y2023_path_donate', effects: [ { statDelta: { money: -200, happiness: 2 } } ] },
-        { label: 'Uzaktan organizasyon', next: 'y2023_path_remote', effects: [ { statDelta: { intelligence: 2, social: 3 } } ] }
-      ]
-    }),
+    y2023_volunteer: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2023 · Dayanışma Yılı</h2>
+          <p>Toplumsal kırılma. Katkı sağlamak istiyorsan, her yolun farklı bir bedeli var.</p>
+          ${s.empathy >= 60
+            ? '<p class="stat-note">📊 Yüksek empatinle sahada çok daha etkili olursun.</p>'
+            : ''}
+        `,
+        choices: [
+          { label: '🤲 Sahaya in, gönüllü çalış',
+            next: 'y2023_path_vol',
+            effects: [ { statDelta: { social: 7, empathy: 4, confidence: 4, happiness: 3, money: -200, health: -2 } } ] },
+          { label: '💳 Maddi destek ver',
+            next: 'y2023_path_donate',
+            conditions: [ { statGte: { key: 'money', value: 200 } } ],
+            effects: [ { statDelta: { happiness: 3, money: -250, social: -1 } } ] },
+          { label: '💻 Uzaktan organizasyon',
+            next: 'y2023_path_remote',
+            effects: [ { statDelta: { intelligence: 3, social: 4, confidence: 2, happiness: -1, money: -50 } } ] },
+        ]
+      };
+    },
     y2023_path_vol: (state) => ({
       text: `
         <h2>2023 · Sahada</h2>
-        <p>Hangi görev?</p>
+        <p>Hangi görevde yer alıyorsun?</p>
       `,
       choices: [
-        { label: 'Lojistik', next: 'y2024_career', effects: [ { statDelta: { endurance: 1 } } ] },
-        { label: 'Koordinasyon', next: 'y2024_career', effects: [ { statDelta: { social: 1, confidence: 1 } } ] },
-        { label: 'Psikososyal destek', next: 'y2024_career', effects: [ { statDelta: { empathy: 2 } } ] }
+        { label: '🚛 Lojistik ve dağıtım',
+          next: 'y2024_career',
+          effects: [ { statDelta: { endurance: 2, empathy: 2, confidence: 2, health: -1 } } ] },
+        { label: '📋 Koordinasyon ve yönetim',
+          next: 'y2024_career',
+          effects: [ { statDelta: { social: 3, charisma: 2, confidence: 3, intelligence: 1 } } ] },
+        { label: '🧠 Psikososyal destek',
+          next: 'y2024_career',
+          effects: [ { statDelta: { empathy: 4, social: 2, happiness: 2, health: -1 } } ] },
       ]
     }),
     y2023_path_donate: (state) => ({
       text: `
-        <h2>2023 · Destek</h2>
-        <p>Nereye bağış?</p>
+        <h2>2023 · Maddi Destek</h2>
+        <p>Hangi alana katkı sağlıyorsun?</p>
       `,
       choices: [
-        { label: 'Eğitim', next: 'y2024_career', effects: [ { statDelta: { happiness: 1 } } ] },
-        { label: 'Sağlık', next: 'y2024_career', effects: [ { statDelta: { happiness: 1 } } ] },
-        { label: 'Barınma', next: 'y2024_career', effects: [ { statDelta: { happiness: 1 } } ] }
+        { label: '📚 Eğitim fonları',
+          next: 'y2024_career',
+          effects: [ { statDelta: { happiness: 2, intelligence: 1, money: -100 } } ] },
+        { label: '🏥 Sağlık ve acil yardım',
+          next: 'y2024_career',
+          effects: [ { statDelta: { happiness: 3, empathy: 2, money: -150 } } ] },
+        { label: '🏠 Barınma projeleri',
+          next: 'y2024_career',
+          effects: [ { statDelta: { happiness: 2, empathy: 2, social: 1, money: -100 } } ] },
       ]
     }),
     y2023_path_remote: (state) => ({
       text: `
         <h2>2023 · Uzaktan Organizasyon</h2>
-        <p>Hangi rol?</p>
+        <p>Hangi rol üstleniyorsun?</p>
       `,
       choices: [
-        { label: 'İletişim', next: 'y2024_career', effects: [ { statDelta: { social: 1 } } ] },
-        { label: 'Planlama', next: 'y2024_career', effects: [ { statDelta: { intelligence: 1, focus: 1 } } ] },
-        { label: 'Kaynak geliştirme', next: 'y2024_career', effects: [ { statDelta: { confidence: 1 } } ] }
+        { label: '📣 İletişim ve medya',
+          next: 'y2024_career',
+          effects: [ { statDelta: { social: 3, charisma: 2, creativity: 1 } } ] },
+        { label: '📊 Kaynak planlama',
+          next: 'y2024_career',
+          effects: [ { statDelta: { intelligence: 2, focus: 2, discipline: 1 } } ] },
+        { label: '💰 Bağış ve fon geliştirme',
+          next: 'y2024_career',
+          effects: [ { statDelta: { confidence: 2, social: 2, charisma: 1 } } ] },
       ]
     }),
-    y2024_career: (state) => ({
-      text: `
-        <h2>2024 · Yol Ayrımı</h2>
-        <p>Uzmanlaşma seçimleri.</p>
-      `,
-      choices: [
-        { label: 'Kurumsal', next: 'y2024_corp_path', effects: [ { statDelta: { confidence: 3 } } ] },
-        { label: 'Start-up', next: 'y2024_startup_path', effects: [ { statDelta: { confidence: 5 } } ] },
-        { label: 'Akademi', next: 'y2024_acad_path', effects: [ { statDelta: { intelligence: 3, confidence: 2 } } ] }
-      ]
-    }),
+    y2024_career: (state) => {
+      const s = state.data.stats; const f = state.data.flags; const t = state.data.traits || [];
+      const hint = f.uniField === 'stem' && s.intelligence >= 65
+        ? '<p class="stat-note">⭐ STEM geçmişin + zekânla kurumsal teknik roller açık.</p>'
+        : f.uniField === 'design'
+        ? '<p class="stat-note">🎨 Tasarım geçmişin yaratıcı sektörlerde avantaj sağlıyor.</p>'
+        : t.includes('sabirli')
+        ? '<p class="stat-note">📊 Sabırlı yapın uzun vadeli kariyer yatırımlarına uygun.</p>'
+        : '';
+      return {
+        text: `
+          <h2>2024 · Kariyer Kavşağı</h2>
+          <p>Birikimler ve deneyim şekillendi. Asıl yol başlıyor. Her seçenek farklı bir bedel taşıyor.</p>
+          ${hint}
+        `,
+        choices: [
+          { label: '🏢 Kurumsal şirkete gir',
+            next: 'y2024_corp_path',
+            effects: [ { statDelta: { money: 1800, discipline: 2, confidence: 2, creativity: -2, happiness: -2 } } ] },
+          { label: '🚀 Start-up kur ya da katıl',
+            next: 'y2024_startup_path',
+            effects: [ { setFlag: { startupTrack: true } }, { statDelta: { confidence: 6, creativity: 3, money: -500, happiness: -1 } } ] },
+          { label: '🎓 Akademiye yönel',
+            next: 'y2024_acad_path',
+            conditions: [ { statGte: { key: 'intelligence', value: 68 } } ],
+            effects: [ { setFlag: { academiaTrack: true } }, { statDelta: { intelligence: 4, confidence: 3, money: -1000 } } ] },
+          { label: '🌍 Yurt dışı kariyer hedefle',
+            next: 'y2024_corp_path',
+            conditions: [ { statGte: { key: 'confidence', value: 60 } } ],
+            effects: [ { setFlag: { abroadAccepted: true } }, { statDelta: { confidence: 4, social: 3, intelligence: 2, money: -800, happiness: -2 } } ] },
+        ]
+      };
+    },
     y2024_corp_path: (state) => ({
       text: `
         <h2>2024 · Kurumsal Yol</h2>
-        <p>İşe giriş stratejisi.</p>
+        <p>İşe giriş stratejisi. Hangi avantajı öne çıkarıyorsun?</p>
       `,
       choices: [
-        { label: 'CV ve referans', next: 'y2025_outcome', effects: [ { statDelta: { confidence: 1, money: 1200 } } ] },
-        { label: 'Sertifika ile güçlendir', next: 'y2025_outcome', effects: [ { statDelta: { intelligence: 1, money: 900 } } ] },
-        { label: 'Networking', next: 'y2025_outcome', effects: [ { statDelta: { social: 2, money: 1000 } } ] }
+        { label: '📄 CV + referans ağı',
+          next: 'y2025_outcome',
+          effects: [ { statDelta: { confidence: 2, social: 2, money: 1400 } } ] },
+        { label: '🏅 Sertifika ile güçlendir',
+          next: 'y2025_outcome',
+          effects: [ { statDelta: { intelligence: 2, confidence: 2, money: 1000, happiness: -1 } } ] },
+        { label: '🤝 Networking ve referans',
+          next: 'y2025_outcome',
+          effects: [ { statDelta: { social: 4, charisma: 2, confidence: 2, money: 1200 } } ] },
       ]
     }),
     y2024_startup_path: (state) => ({
       text: `
-        <h2>2024 · Start-up Yol</h2>
-        <p>Ürün/market uyumu.</p>
+        <h2>2024 · Start-up Yolu</h2>
+        <p>Ürün-piyasa uyumu. İlk adım nerede?</p>
       `,
       choices: [
-        { label: 'MVP çıkar', next: 'y2025_outcome', effects: [ { statDelta: { confidence: 2, money: 800 } } ] },
-        { label: 'Ön satış', next: 'y2025_outcome', effects: [ { statDelta: { social: 1, money: 1000 } } ] },
-        { label: 'İnkübasyon', next: 'y2025_outcome', effects: [ { statDelta: { intelligence: 1, confidence: 1, money: 900 } } ] }
+        { label: '🛠️ Hızlı MVP çıkar, test et',
+          next: 'y2025_outcome',
+          effects: [ { statDelta: { confidence: 4, creativity: 3, intelligence: 2, money: -300, health: -2 } } ] },
+        { label: '👥 Ortak bul, takım kur',
+          next: 'y2025_outcome',
+          effects: [ { statDelta: { social: 4, confidence: 3, creativity: -1, money: -100 } } ] },
+        { label: '🏛️ İnkübasyon programına gir',
+          next: 'y2025_outcome',
+          effects: [ { statDelta: { intelligence: 3, confidence: 3, social: 2, money: 500 } } ] },
       ]
     }),
     y2024_acad_path: (state) => ({
       text: `
-        <h2>2024 · Akademik Yol</h2>
-        <p>Akademik hazırlık.</p>
+        <h2>2024 · Akademi Yolu</h2>
+        <p>Araştırma, yayın, tez. Uzun yol — ama kalıcı etki.</p>
       `,
       choices: [
-        { label: 'Yayın/Poster', next: 'y2025_outcome', effects: [ { statDelta: { intelligence: 2, confidence: 1 } } ] },
-        { label: 'Araştırma asistanlığı', next: 'y2025_outcome', effects: [ { statDelta: { intelligence: 1, money: 600 } } ] },
-        { label: 'Dil skoru', next: 'y2025_outcome', effects: [ { statDelta: { focus: 1, confidence: 1 } } ] }
+        { label: '📄 Yayın / konferans bildirisi',
+          next: 'y2025_outcome',
+          effects: [ { statDelta: { intelligence: 4, confidence: 3, social: -1 } } ] },
+        { label: '🔬 Araştırma asistanlığı',
+          next: 'y2025_outcome',
+          effects: [ { statDelta: { intelligence: 3, money: 400, confidence: -1 } } ] },
+        { label: '🌍 Yurt dışı yüksek lisans başvurusu',
+          next: 'y2025_outcome',
+          conditions: [ { statGte: { key: 'intelligence', value: 68 } } ],
+          effects: [ { addTrait: 'englishB2' }, { statDelta: { confidence: 5, intelligence: 3, money: -600, happiness: -2 } } ] },
       ]
     }),
-    y2025_outcome: (state) => ({
-      text: `
-        <h2>2025 · Sonuç</h2>
-        <p>Devam ederek 2030 yoluna geçebilirsin. Hedef: ${state.data.flags.goal || '—'}</p>
-      `,
-      choices: [
-        { label: 'Devam (2030)', next: 'y2026_growth' },
-        { label: 'Başa dön', next: () => { state.data.flags.restart = true; return 'intro'; } }
-      ]
-    }),
-    y2026_growth: (state) => ({
-      text: `
-        <h2>2026 · Gelişim Yılı</h2>
-        <p>Önündeki fırsatlar: spor, girişim, akademi veya keşif.</p>
-      `,
-      choices: [
-        { label: 'Spor', next: 'y2027_sports' },
-        { label: 'Girişim', next: 'y2027_startup' },
-        { label: 'Akademi', next: 'y2027_academia' },
-        { label: 'Seyahat', next: 'y2027_travel' },
-        { label: 'Servet yoluna gir', next: 'y2026_wealth_intro' },
-        { label: 'Sağlık (Tıp) yoluna gir', next: 'y2026_med_intro' },
-        { label: 'Mühendislik yoluna gir', next: 'y2026_eng_intro' },
-        { label: 'Mimarlık yoluna gir', next: 'y2026_arch_intro' },
-        { label: 'İthalat/İhracat yoluna gir', next: 'y2026_trade_intro' }
-      ]
-    }),
+    y2025_outcome: (state) => {
+      const s = state.data.stats; const f = state.data.flags; const t = state.data.traits || [];
+      const pathNote = f.milBranch ? `🎖️ ${f.milBranch} kuvvetleri`
+        : f.uniField === 'stem' ? '⚙️ Teknik / Mühendislik'
+        : f.uniField === 'design' ? '🎨 Tasarım / Sanat'
+        : f.startupFunded ? '🚀 Girişimci'
+        : f.academiaTrack ? '🎓 Akademisyen'
+        : t.includes('athlete') ? '🏅 Sporcu' : '🌿 Genel Kariyer';
+      return {
+        text: `
+          <h2>2025 · 25 Yaşında</h2>
+          <p>${pathNote} — beş yılı geride bıraktın.</p>
+          <p class="muted">💰 Para: <strong>${s.money >= 0 ? '+' : ''}${s.money}₺</strong> ·
+          🌍 Seyahat: <strong>${(state.data.numbers && state.data.numbers.travelCount) || 0}</strong> ·
+          🏋️ Antrenman: <strong>${(state.data.numbers && state.data.numbers.training) || 0}</strong></p>
+          <p><strong>Özellikler:</strong> ${t.length ? t.join(' · ') : '—'}</p>
+        `,
+        choices: [
+          { label: '→ 2026–2030 dönemine geç', next: 'y2026_growth' },
+          { label: '🔄 Yeniden başla', next: 'intro' },
+        ]
+      };
+    },
+    y2026_growth: (state) => {
+      const s = state.data.stats; const f = state.data.flags; const t = state.data.traits || [];
+      return {
+        text: `
+          <h2>2026 · Gelişim & Uzmanlaşma</h2>
+          <p>Otuzlu yılların eşiğinde. Derinleşme zamanı — ama her yolun bedeli var.</p>
+          ${s.health >= 68 ? '<p class="stat-note">💪 Sağlıklı bedeninle spor yolunda ciddi hedefler koyabilirsin.</p>' : ''}
+          ${s.confidence >= 65 ? '<p class="stat-note">📊 Yüksek özgüvenin girişimcilik için uygun.</p>' : ''}
+          ${s.intelligence >= 68 ? '<p class="stat-note">🎓 Güçlü zekânla akademi veya mühendislik yolunda ilerleyebilirsin.</p>' : ''}
+        `,
+        choices: [
+          { label: '🏆 Spor — ulusal hedef',
+            next: 'y2027_sports',
+            conditions: [ { statGte: { key: 'health', value: 55 } } ],
+            effects: [ { addTrait: 'athlete' }, { statDelta: { health: 3, confidence: 2, intelligence: -1, social: -1 } } ] },
+          { label: '🚀 Girişim — MVP geliştir',
+            next: 'y2027_startup',
+            conditions: [ { statGte: { key: 'confidence', value: 55 } } ],
+            effects: [ { setFlag: { startupTrack: true } }, { statDelta: { creativity: 2, money: -200 } } ] },
+          { label: '🎓 Akademi — lisansüstü',
+            next: 'y2027_academia',
+            conditions: [ { statGte: { key: 'intelligence', value: 62 } } ],
+            effects: [ { setFlag: { academiaTrack: true } }, { statDelta: { intelligence: 3, social: -2, money: -300 } } ] },
+          { label: '🌍 Dünyayı keşfet',
+            next: 'y2027_travel',
+            effects: [ { statDelta: { happiness: 4, social: 2, money: -300, discipline: -1 } } ] },
+          { label: '💰 Servet yolu',
+            next: 'y2026_wealth_intro' },
+          { label: '🏥 Tıp yolu',
+            next: 'y2026_med_intro',
+            conditions: [ { statGte: { key: 'intelligence', value: 60 } } ] },
+          { label: '⚙️ Mühendislik yolu',
+            next: 'y2026_eng_intro',
+            conditions: [ { statGte: { key: 'intelligence', value: 58 } } ] },
+          { label: '🏛️ Mimarlık yolu',
+            next: 'y2026_arch_intro',
+            conditions: [ { statGte: { key: 'creativity', value: 50 } } ] },
+          { label: '🌐 Dış Ticaret yolu',
+            next: 'y2026_trade_intro' },
+        ]
+      };
+    },
     // İthalat/İhracat hedefi
-    y2026_trade_intro: (state) => ({
-      text: `
-        <h2>2026 · Dış Ticaret Planı</h2>
-        <p>Pazar, tedarikçi ve teslim şekilleri.</p>
-      `,
-      choices: [
-        { label: 'Pazar araştırması', next: 'y2027_trade_ops', effects: [ { statDelta: { intelligence: 1 } } ] },
-        { label: 'Tedarikçi bul', next: 'y2027_trade_ops', effects: [ { statDelta: { social: 1 } } ] },
-        { label: 'Finansman', next: 'y2027_trade_ops', effects: [ { statDelta: { confidence: 1 } } ] }
-      ]
-    }),
+    y2026_trade_intro: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2026 · Dış Ticaret Planı</h2>
+          <p>Pazar, tedarikçi ve teslim şekilleri.</p>
+          ${s.intelligence >= 62 ? '<p class="stat-note">📊 Analitik zekânla piyasa araştırması güçlü silahın.</p>' : ''}
+          ${s.social >= 60 ? '<p class="stat-note">🤝 Sosyal ağın tedarikçi ilişkilerinde avantaj sağlar.</p>' : ''}
+        `,
+        choices: [
+          { label: '🔍 Pazar araştırması',
+            next: 'y2027_trade_ops',
+            effects: [ { statDelta: { intelligence: 3, focus: 2 } } ] },
+          { label: '🤝 Tedarikçi ilişkileri kur',
+            next: 'y2027_trade_ops',
+            effects: [ { statDelta: { social: 3, confidence: 2 } } ] },
+          { label: '💰 Finansman ve ihracat desteği',
+            next: 'y2027_trade_ops',
+            effects: [ { statDelta: { confidence: 2, intelligence: 1, money: 200 } } ] },
+        ]
+      };
+    },
     y2027_trade_ops: (state) => ({
       text: `
         <h2>2027 · Operasyon</h2>
-        <p>INCOTERMS ve ödeme yöntemleri.</p>
+        <p>INCOTERMS ve ödeme yöntemi seç.</p>
       `,
       choices: [
-        { label: 'FOB + LC (güvenli)', next: 'y2028_trade_case', effects: [ { statDelta: { money: -500 } } ] },
-        { label: 'CIF + CAD (dengeli)', next: 'y2028_trade_case', effects: [ { statDelta: { money: -300 } } ] },
-        { label: 'EXW + TT (riskli)', next: 'y2028_trade_case', effects: [ { statDelta: { money: -200 } } ] }
+        { label: '🟢 FOB + LC (güvenli)',
+          next: 'y2028_trade_case',
+          effects: [ { statDelta: { money: -500, discipline: 2 } } ] },
+        { label: '🟡 CIF + CAD (dengeli)',
+          next: 'y2028_trade_case',
+          effects: [ { statDelta: { money: -300, confidence: 1 } } ] },
+        { label: '🔴 EXW + TT (riskli)',
+          next: 'y2028_trade_case',
+          effects: [ { statDelta: { money: -200, confidence: 2 } } ] },
       ]
     }),
     y2028_trade_case: (state) => ({
@@ -911,48 +1408,76 @@ function getScenes() {
       ]
     }),
     // Mimar ol hedefi
-    y2026_arch_intro: (state) => ({
-      text: `
-        <h2>2026 · Mimarlık Planı</h2>
-        <p>Kavramsal tasarım ve uygulama.</p>
-      `,
-      choices: [
-        { label: 'Stüdyo projesi', next: 'y2027_arch_studio' },
-        { label: 'Şantiye deneyimi', next: 'y2027_arch_site' },
-        { label: 'Yarışma', next: 'y2027_arch_comp' }
-      ]
-    }),
+    y2026_arch_intro: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2026 · Mimarlık Planı</h2>
+          <p>Kavramsal tasarım ve uygulama.</p>
+          ${s.creativity >= 65 ? '<p class="stat-note">🏛️ Güçlü yaratıcılığın yarışma ve stüdyo için avantaj.</p>' : ''}
+        `,
+        choices: [
+          { label: '🎨 Stüdyo projesi',
+            next: 'y2027_arch_studio',
+            effects: [ { statDelta: { creativity: 2, intelligence: 1 } } ] },
+          { label: '🏗️ Şantiye deneyimi',
+            next: 'y2027_arch_site',
+            effects: [ { statDelta: { discipline: 2, confidence: 1 } } ] },
+          { label: '🏆 Ulusal/uluslararası yarışma',
+            next: 'y2027_arch_comp',
+            effects: [ { statDelta: { creativity: 2, confidence: 1 } } ] },
+        ]
+      };
+    },
     y2027_arch_studio: (state) => ({
       text: `
-        <h2>2027 · Stüdyo</h2>
-        <p>Konsept belirle.</p>
+        <h2>2027 · Mimarlık Stüdyosu</h2>
+        <p>Konsept belirliyorsun.</p>
       `,
       choices: [
-        { label: 'Sürdürülebilir', next: 'y2028_arch_cases', effects: [ { statDelta: { creativity: 1 } } ] },
-        { label: 'Minimal', next: 'y2028_arch_cases', effects: [ { statDelta: { focus: 1 } } ] },
-        { label: 'Parametrik', next: 'y2028_arch_cases', effects: [ { statDelta: { intelligence: 1 } } ] }
+        { label: '🌱 Sürdürülebilir tasarım',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { creativity: 3, intelligence: 2, social: 1 } } ] },
+        { label: '◻️ Minimalist yaklaşım',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { focus: 3, discipline: 2, creativity: 1 } } ] },
+        { label: '🖥️ Parametrik/dijital tasarım',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { intelligence: 3, creativity: 2, focus: 2 } } ] },
       ]
     }),
     y2027_arch_site: (state) => ({
       text: `
-        <h2>2027 · Şantiye</h2>
-        <p>Detay ve uygulama öğren.</p>
+        <h2>2027 · Şantiye Deneyimi</h2>
+        <p>Detay ve uygulama öğreniyorsun.</p>
       `,
       choices: [
-        { label: 'Detay çizim', next: 'y2028_arch_cases', effects: [ { statDelta: { discipline: 1 } } ] },
-        { label: 'Malzeme tedarik', next: 'y2028_arch_cases', effects: [ { statDelta: { social: 1 } } ] },
-        { label: 'Keşif–metraj', next: 'y2028_arch_cases', effects: [ { statDelta: { intelligence: 1 } } ] }
+        { label: '📐 Detay çizim ve teknik dokümantasyon',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { discipline: 3, intelligence: 2, focus: 2 } } ] },
+        { label: '🧱 Malzeme seçimi ve tedarik',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { social: 2, intelligence: 2, confidence: 1 } } ] },
+        { label: '📊 Keşif–metraj ve maliyet',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { intelligence: 3, discipline: 2 } } ] },
       ]
     }),
     y2027_arch_comp: (state) => ({
       text: `
-        <h2>2027 · Yarışma</h2>
-        <p>Brief’e uygun tasarım.</p>
+        <h2>2027 · Tasarım Yarışması</h2>
+        <p>Brief'e uygun tasarım sunuyorsun.</p>
       `,
       choices: [
-        { label: 'Konsept', next: 'y2028_arch_cases', effects: [ { statDelta: { creativity: 1 } } ] },
-        { label: 'İşbirliği', next: 'y2028_arch_cases', effects: [ { statDelta: { social: 1 } } ] },
-        { label: 'Sunum', next: 'y2028_arch_cases', effects: [ { statDelta: { confidence: 1 } } ] }
+        { label: '💡 Güçlü konsept odağı',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { creativity: 4, confidence: 2, focus: 1 } } ] },
+        { label: '🤝 İşbirlikçi ekip tasarımı',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { social: 3, creativity: 2, confidence: 2 } } ] },
+        { label: '🎤 Etkileyici sunum',
+          next: 'y2028_arch_cases',
+          effects: [ { statDelta: { confidence: 3, charisma: 2, social: 1 } } ] },
       ]
     }),
     y2028_arch_cases: (state) => ({
@@ -978,60 +1503,94 @@ function getScenes() {
       ]
     }),
     // Mühendis ol hedefi
-    y2026_eng_intro: (state) => ({
-      text: `
-        <h2>2026 · Mühendislik Planı</h2>
-        <p>Uzmanlaşma ve proje hedefi.</p>
-      `,
-      choices: [
-        { label: 'Alan seç (Yazılım/Elektrik/Mekanik)', next: 'y2026_eng_field' },
-        { label: 'Staj/iş bul', next: 'y2027_eng_intern' },
-        { label: 'Sertifika/konferans', next: 'y2027_eng_cert' }
-      ]
-    }),
+    y2026_eng_intro: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2026 · Mühendislik Planı</h2>
+          <p>Uzmanlaşma ve proje hedefi.</p>
+          ${s.intelligence >= 70 ? '<p class="stat-note">⚙️ Güçlü zekânla ileri teknik rollere uygunsun.</p>' : ''}
+        `,
+        choices: [
+          { label: '🔀 Alan seç (Yazılım/Elektrik/Mekanik)',
+            next: 'y2026_eng_field' },
+          { label: '💼 Staj / iş bul',
+            next: 'y2027_eng_intern',
+            effects: [ { statDelta: { confidence: 2, money: 300 } } ] },
+          { label: '📜 Sertifika / konferans',
+            next: 'y2027_eng_cert',
+            effects: [ { statDelta: { intelligence: 2, focus: 1 } } ] },
+        ]
+      };
+    },
     y2026_eng_field: (state) => ({
       text: `
-        <h2>Alan Seçimi</h2>
-        <p>Hangi alan?</p>
+        <h2>2026 · Mühendislik Alanı</h2>
+        <p>Hangi alanda uzmanlaşıyorsun?</p>
       `,
       choices: [
-        { label: 'Yazılım', next: () => { state.data.flags.engField = 'soft'; return 'y2027_eng_intern'; } },
-        { label: 'Elektrik', next: () => { state.data.flags.engField = 'elec'; return 'y2027_eng_intern'; } },
-        { label: 'Mekanik', next: () => { state.data.flags.engField = 'mech'; return 'y2027_eng_intern'; } }
+        { label: '💻 Yazılım Mühendisliği',
+          next: 'y2027_eng_intern',
+          effects: [ { setFlag: { engField: 'soft' } }, { statDelta: { intelligence: 3, creativity: 2, social: -1 } } ] },
+        { label: '⚡ Elektrik Mühendisliği',
+          next: 'y2027_eng_intern',
+          effects: [ { setFlag: { engField: 'elec' } }, { statDelta: { intelligence: 3, focus: 2, health: -1 } } ] },
+        { label: '🔧 Mekanik Mühendisliği',
+          next: 'y2027_eng_intern',
+          effects: [ { setFlag: { engField: 'mech' } }, { statDelta: { strength: 2, intelligence: 2, discipline: 2 } } ] },
       ]
     }),
     y2027_eng_intern: (state) => ({
       text: `
-        <h2>2027 · Staj</h2>
-        <p>Deneyim kazan.</p>
+        <h2>2027 · Staj / İş</h2>
+        <p>Alan: <strong>${state.data.flags.engField || '—'}</strong>. Deneyim kazanıyorsun.</p>
       `,
       choices: [
-        { label: 'Kurumsal', next: 'y2028_eng_project', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Start-up', next: 'y2028_eng_project', effects: [ { statDelta: { social: 1, confidence: 1 } } ] },
-        { label: 'Araştırma lab', next: 'y2028_eng_project', effects: [ { statDelta: { intelligence: 1 } } ] }
+        { label: '🏢 Kurumsal şirkette staj',
+          next: 'y2028_eng_project',
+          effects: [ { statDelta: { confidence: 3, discipline: 2, money: 300 } } ] },
+        { label: '🚀 Start-up ortamı',
+          next: 'y2028_eng_project',
+          effects: [ { statDelta: { social: 2, creativity: 2, confidence: 2, money: 200 } } ] },
+        { label: '🔬 Araştırma laboratuvarı',
+          next: 'y2028_eng_project',
+          effects: [ { statDelta: { intelligence: 3, focus: 2, social: -1 } } ] },
       ]
     }),
     y2027_eng_cert: (state) => ({
       text: `
-        <h2>2027 · Sertifika</h2>
-        <p>Hangi sertifika?</p>
+        <h2>2027 · Sertifika / Konferans</h2>
+        <p>Alanına özel sertifika hedefin.</p>
       `,
       choices: [
-        { label: 'Bulut/DevOps', next: 'y2028_eng_project', effects: [ { statDelta: { intelligence: 1, confidence: 1 } } ] },
-        { label: 'Gömülü/PCB', next: 'y2028_eng_project', effects: [ { statDelta: { intelligence: 1 } } ] },
-        { label: 'CAD/Simülasyon', next: 'y2028_eng_project', effects: [ { statDelta: { intelligence: 1, focus: 1 } } ] }
+        { label: '☁️ Bulut / DevOps (AWS, GCP)',
+          next: 'y2028_eng_project',
+          effects: [ { statDelta: { intelligence: 3, confidence: 2, money: -400 } } ] },
+        { label: '🔌 Gömülü / PCB tasarımı',
+          next: 'y2028_eng_project',
+          effects: [ { statDelta: { intelligence: 3, focus: 2, money: -300 } } ] },
+        { label: '🖥️ CAD / Simülasyon',
+          next: 'y2028_eng_project',
+          effects: [ { statDelta: { intelligence: 2, focus: 3, creativity: 1, money: -300 } } ] },
       ]
     }),
     y2028_eng_project: (state) => ({
       text: `
-        <h2>2028 · Proje</h2>
-        <p>Alanına uygun bir proje tamamla.</p>
+        <h2>2028 · Mühendislik Projesi</h2>
+        <p>Alan: <strong>${state.data.flags.engField || '—'}</strong>. Alanına uygun bir proje tamamla.</p>
       `,
       choices: [
-        { label: 'Güvenli: Bilinen çözüm', next: 'y2029_eng_offer', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Dengeli: Optimize et', next: 'y2029_eng_offer', effects: [ { statDelta: { intelligence: 1, confidence: 1 } } ] },
-        { label: 'Riskli: Yeni yaklaşım', next: 'y2029_eng_offer', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Uygulama sınavı (30 problem)', next: 'y2028_eng_cases' }
+        { label: '🟢 Bilinen çözüm (güvenli)',
+          next: 'y2029_eng_offer',
+          effects: [ { statDelta: { confidence: 2, intelligence: 1 } } ] },
+        { label: '🟡 Optimize et (dengeli)',
+          next: 'y2029_eng_offer',
+          effects: [ { statDelta: { intelligence: 3, focus: 2, confidence: 2 } } ] },
+        { label: '🔴 Yeni yaklaşım (riskli)',
+          next: 'y2029_eng_offer',
+          effects: [ { statDelta: { confidence: 4, creativity: 3, intelligence: 2, health: -1 } } ] },
+        { label: '📚 Uygulama sınavı çöz',
+          next: 'y2028_eng_cases' },
       ]
     }),
     y2028_eng_cases: (state) => ({
@@ -1058,69 +1617,103 @@ function getScenes() {
     }),
     y2029_eng_offer: (state) => ({
       text: `
-        <h2>2029 · Teklif</h2>
-        <p>İş görüşmeleri.</p>
+        <h2>2029 · İş Teklifleri</h2>
+        <p>Alan: <strong>${state.data.flags.engField || '—'}</strong>. İş görüşmeleri başlıyor.</p>
       `,
       choices: [
-        { label: 'Teknik mülakat', next: () => { const s = state.data.stats; const score = Math.round(s.intelligence*0.6 + s.focus*0.2 + s.confidence*0.2); return score >= 70 ? 'y2030_eng_eval' : 'y2029_eng_retry'; } },
-        { label: 'Ağ üzerinden fırsat', next: 'y2030_eng_eval', effects: [ { statDelta: { social: 1 } } ] },
-        { label: 'Yurt dışı başvur', next: 'y2030_eng_eval', effects: [ { numberDelta: { travelCount: 1 } }, { statDelta: { confidence: 1 } } ] }
+        { label: '🎯 Teknik mülakat',
+          next: (state) => {
+            const s = state.data.stats;
+            const score = Math.round(s.intelligence*0.6 + s.focus*0.2 + s.confidence*0.2);
+            return score >= 70 ? 'y2030_eng_eval' : 'y2029_eng_retry';
+          } },
+        { label: '🤝 Ağ üzerinden fırsat',
+          next: 'y2030_eng_eval',
+          effects: [ { statDelta: { social: 2, confidence: 2, money: 800 } } ] },
+        { label: '🌍 Yurt dışı başvur',
+          next: 'y2030_eng_eval',
+          effects: [ { setFlag: { abroadAccepted: true } }, { statDelta: { confidence: 3, money: -200 } }, { numberDelta: { travelCount: 1 } } ] },
       ]
     }),
     y2029_eng_retry: (state) => ({
       text: `
         <h2>2029 · Tekrar Deneme</h2>
-        <p>Biraz daha hazırlık.</p>
+        <p>Mülakat başarısız. Eksik nerede?</p>
       `,
       choices: [
-        { label: 'Algoritma çalış', next: 'y2029_eng_offer', effects: [ { statDelta: { intelligence: 2 } } ] },
-        { label: 'Mock interview', next: 'y2029_eng_offer', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Portföyü güçlendir', next: 'y2029_eng_offer', effects: [ { statDelta: { confidence: 1 } } ] }
+        { label: '🧮 Algoritma ve veri yapıları çalış',
+          next: 'y2029_eng_offer',
+          effects: [ { statDelta: { intelligence: 3, focus: 2 } } ] },
+        { label: '🎤 Mock interview pratiği',
+          next: 'y2029_eng_offer',
+          effects: [ { statDelta: { confidence: 3, social: 1 } } ] },
+        { label: '📁 Portföy ve GitHub güncelle',
+          next: 'y2029_eng_offer',
+          effects: [ { statDelta: { confidence: 2, creativity: 2 } } ] },
       ]
     }),
     y2030_eng_eval: (state) => ({
       text: `
-        <h2>2030 · Mühendislik Değerlendirmesi</h2>
-        <p>Hedef kontrolü.</p>
+        <h2>2030 · Mühendislik Kariyer Değerlendirmesi</h2>
+        <p>Alan: <strong>${state.data.flags.engField || '—'}</strong> · Kariyer oturdu.</p>
       `,
       choices: [
-        { label: 'Hedefi değerlendir', next: 'goal_eval' },
-        { label: 'Devam', next: 'y2030_outcome' }
+        { label: '🎯 Hedefi değerlendir', next: 'goal_eval' },
+        { label: '→ Final sahnesine geç', next: 'y2030_outcome' },
       ]
     }),
     // Doktor ol hedefi
-    y2026_med_intro: (state) => ({
-      text: `
-        <h2>2026 · Tıp Yolculuğu</h2>
-        <p>Hekimlikte ilerlemek için plan yap.</p>
-      `,
-      choices: [
-        { label: 'TUS hazırlığı', next: 'y2027_tus_prep', effects: [ { statDelta: { intelligence: 2, discipline: 2, focus: 2 } } ] },
-        { label: 'Klinik rotasyonlar', next: 'y2027_clinical_rot', effects: [ { statDelta: { empathy: 1, confidence: 1 } } ] },
-        { label: 'Araştırma/gönüllülük', next: 'y2027_med_vol', effects: [ { statDelta: { intelligence: 1, social: 1 } } ] }
-      ]
-    }),
+    y2026_med_intro: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2026 · Tıp Yolculuğu</h2>
+          <p>Hekimlikte ilerlemek için plan yap.</p>
+          ${s.intelligence >= 72 ? '<p class="stat-note">🧠 Güçlü zekânla TUS başarısı için iyi zemin.</p>' : ''}
+          ${s.empathy >= 65 ? '<p class="stat-note">❤️ Yüksek empatinle hasta iletişiminde öne çıkarsın.</p>' : ''}
+        `,
+        choices: [
+          { label: '📚 TUS hazırlığı',
+            next: 'y2027_tus_prep',
+            effects: [ { statDelta: { intelligence: 3, discipline: 3, focus: 3, happiness: -2, social: -2 } } ] },
+          { label: '🏥 Klinik rotasyonlar',
+            next: 'y2027_clinical_rot',
+            effects: [ { statDelta: { empathy: 3, confidence: 2, intelligence: 1 } } ] },
+          { label: '🌍 Araştırma / gönüllülük',
+            next: 'y2027_med_vol',
+            effects: [ { statDelta: { intelligence: 2, social: 2, empathy: 2, money: -200 } } ] },
+        ]
+      };
+    },
     y2027_tus_prep: (state) => ({
       text: `
         <h2>2027 · TUS Hazırlığı</h2>
-        <p>Hazırlık yöntemi.</p>
+        <p>Uzmanlık sınavı için iki yıl çalışma. Hazırlık yöntemi?</p>
       `,
       choices: [
-        { label: 'Kurs (güvenli)', next: 'y2028_tus_exam', effects: [ { statDelta: { money: -800, intelligence: 2, focus: 1 } } ] },
-        { label: 'Çalışma grubu (dengeli)', next: 'y2028_tus_exam', effects: [ { statDelta: { social: 1, discipline: 1 } } ] },
-        { label: 'Tek başıma (riskli)', next: 'y2028_tus_exam', effects: [ { statDelta: { confidence: 1 } } ] }
+        { label: '🎓 Kurs + soru bankası',
+          next: 'y2028_tus_exam',
+          effects: [ { statDelta: { money: -800, intelligence: 4, focus: 2, discipline: 2, happiness: -2 } } ] },
+        { label: '👥 Çalışma grubu',
+          next: 'y2028_tus_exam',
+          effects: [ { statDelta: { social: 2, intelligence: 2, discipline: 2, focus: 1 } } ] },
+        { label: '💪 Tek başıma yoğun çalış',
+          next: 'y2028_tus_exam',
+          effects: [ { statDelta: { intelligence: 3, discipline: 3, confidence: 1, social: -3, happiness: -2 } } ] },
       ]
     }),
     y2028_tus_exam: (state) => ({
       text: `
-        <h2>2028 · TUS</h2>
-        <p>Uzmanlık sınavı.</p>
+        <h2>2028 · TUS Sınavı</h2>
+        <p>Uzmanlık sınavı günü geldi.</p>
       `,
       choices: [
-        { label: 'Sonucu gör', next: () => {
-          const s = state.data.stats; const score = Math.round(s.intelligence*0.5 + s.discipline*0.3 + s.focus*0.2);
-          return score >= 75 ? 'y2029_residency_start' : 'y2028_tus_retry';
-        } }
+        { label: '📝 Sonucu gör',
+          next: (state) => {
+            const s = state.data.stats;
+            const score = Math.round(s.intelligence*0.5 + s.discipline*0.3 + s.focus*0.2);
+            return score >= 75 ? 'y2029_residency_start' : 'y2028_tus_retry';
+          } },
       ]
     }),
     y2028_tus_retry: (state) => ({
@@ -1129,20 +1722,32 @@ function getScenes() {
         <p>İlk deneme yetmedi. Nasıl devam?</p>
       `,
       choices: [
-        { label: 'Yoğun tekrar', next: 'y2028_tus_exam', effects: [ { statDelta: { intelligence: 1, discipline: 2 } } ] },
-        { label: 'Klinik deneyim', next: 'y2027_clinical_rot', effects: [ { statDelta: { empathy: 1 } } ] },
-        { label: 'Vazgeç ve farklı yol', next: 'y2026_growth' }
+        { label: '🔥 Yoğun tekrar (kurs)',
+          next: 'y2028_tus_exam',
+          effects: [ { statDelta: { intelligence: 3, discipline: 4, money: -500, happiness: -2 } } ] },
+        { label: '🏥 Klinik deneyim kazan',
+          next: 'y2027_clinical_rot',
+          effects: [ { statDelta: { empathy: 2, confidence: 1 } } ] },
+        { label: '🔄 Farklı bir yol seç',
+          next: 'y2026_growth',
+          effects: [ { statDelta: { confidence: -1, happiness: 2 } } ] },
       ]
     }),
     y2027_clinical_rot: (state) => ({
       text: `
         <h2>2027 · Klinik Rotasyonlar</h2>
-        <p>Hangi birim?</p>
+        <p>Hangi birimde derinleşiyorsun?</p>
       `,
       choices: [
-        { label: 'Acil', next: 'y2028_case_rng', effects: [ { statDelta: { confidence: 1 } } ] },
-        { label: 'Dahiliye', next: 'y2028_case_rng', effects: [ { statDelta: { intelligence: 1 } } ] },
-        { label: 'Pediatri', next: 'y2028_case_rng', effects: [ { statDelta: { empathy: 1 } } ] }
+        { label: '🚨 Acil tıp',
+          next: 'y2028_case_rng',
+          effects: [ { statDelta: { confidence: 3, health: -1, happiness: -1 } } ] },
+        { label: '🩺 Dahiliye',
+          next: 'y2028_case_rng',
+          effects: [ { statDelta: { intelligence: 2, discipline: 1, empathy: 1 } } ] },
+        { label: '👶 Pediatri',
+          next: 'y2028_case_rng',
+          effects: [ { statDelta: { empathy: 3, social: 2, happiness: 1 } } ] },
       ]
     }),
     y2027_med_vol: (state) => ({
@@ -1151,9 +1756,15 @@ function getScenes() {
         <p>Kaynak kısıtlı bölgede kısa görev.</p>
       `,
       choices: [
-        { label: 'Sahada yardım', next: 'y2028_case_rng', effects: [ { statDelta: { empathy: 2, confidence: 1 } } ] },
-        { label: 'Eğitim ver', next: 'y2028_case_rng', effects: [ { statDelta: { social: 1, intelligence: 1 } } ] },
-        { label: 'Kaynak toplama', next: 'y2028_case_rng', effects: [ { statDelta: { social: 1 } } ] }
+        { label: '🤲 Sahada yardım',
+          next: 'y2028_case_rng',
+          effects: [ { statDelta: { empathy: 3, confidence: 2, health: -1 } } ] },
+        { label: '📚 Sağlık eğitimi ver',
+          next: 'y2028_case_rng',
+          effects: [ { statDelta: { social: 2, intelligence: 2, confidence: 1 } } ] },
+        { label: '📦 Tıbbi malzeme organizasyonu',
+          next: 'y2028_case_rng',
+          effects: [ { statDelta: { social: 2, discipline: 2 } } ] },
       ]
     }),
     y2028_case_rng: (state) => ({
@@ -1205,54 +1816,75 @@ function getScenes() {
       `,
       choices: [
         { label: 'Yeni vaka', next: 'y2028_case_present', effects: [ (() => { const o = state.data.numbers.lastCase || 0; if (o >= 80) return { statDelta: { confidence: 2, happiness: 1 } }; if (o >= 60) return { statDelta: { confidence: 1 } }; return { statDelta: { happiness: -1 } }; })() ] },
-        { label: 'TUS’a dön', next: 'y2028_tus_exam' },
+        { label: 'TUS sınavına dön', next: 'y2028_tus_exam' },
         { label: 'Tıp yoluna dön', next: 'y2026_med_intro' }
       ]
     }),
     y2029_residency_start: (state) => ({
       text: `
-        <h2>2029 · Asistanlık</h2>
-        <p>Nöbet, etik ve eğitim dengesi.</p>
+        <h2>2029 · Uzmanlık Asistanlığı</h2>
+        <p>Nöbet, etik ve eğitim dengesi. Nasıl öncelik kuruyorsun?</p>
       `,
       choices: [
-        { label: 'Nöbet ağırlıklı (gelir)', next: 'y2030_med_eval', effects: [ { statDelta: { money: 800, health: -2 } } ] },
-        { label: 'Eğitim ağırlıklı (kariyer)', next: 'y2030_med_eval', effects: [ { statDelta: { intelligence: 2 } } ] },
-        { label: 'Dengeli', next: 'y2030_med_eval', effects: [ { statDelta: { confidence: 1, health: -1 } } ] }
+        { label: '⏰ Nöbet ağırlıklı (daha fazla gelir)',
+          next: 'y2030_med_eval',
+          effects: [ { statDelta: { money: 1000, health: -3, happiness: -2 } } ] },
+        { label: '📚 Eğitim ağırlıklı (uzmanlık)',
+          next: 'y2030_med_eval',
+          effects: [ { statDelta: { intelligence: 4, confidence: 3, money: -200 } } ] },
+        { label: '⚖️ Dengeli yaklaşım',
+          next: 'y2030_med_eval',
+          effects: [ { statDelta: { confidence: 2, intelligence: 2, health: -1, money: 400 } } ] },
       ]
     }),
     y2030_med_eval: (state) => ({
       text: `
-        <h2>2030 · Tıp Değerlendirmesi</h2>
-        <p>Hedefi kontrol et.</p>
+        <h2>2030 · Tıp Kariyer Değerlendirmesi</h2>
+        <p>Uzman hekim yolundasın.</p>
       `,
       choices: [
-        { label: 'Hedefi değerlendir', next: 'goal_eval' },
-        { label: 'Devam', next: 'y2030_outcome' }
+        { label: '🎯 Hedefi değerlendir', next: 'goal_eval' },
+        { label: '→ Final sahnesine geç', next: 'y2030_outcome' },
       ]
     }),
     // Servet hedefi yolu
-    y2026_wealth_intro: (state) => ({
-      text: `
-        <h2>2026 · Servet Stratejisi</h2>
-        <p>Yüksek servete ulaşmak için bir strateji belirlemelisin.</p>
-      `,
-      choices: [
-        { label: 'Bütçe disiplini', next: 'y2026_wealth_strategy', effects: [ { statDelta: { discipline: 2, focus: 1 } } ] },
-        { label: 'Kariyeri büyüt', next: 'y2027_wealth_career', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Yatırıma başla', next: 'y2027_wealth_invest', effects: [ { statDelta: { intelligence: 1 } } ] }
-      ]
-    }),
+    y2026_wealth_intro: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2026 · Servet Stratejisi</h2>
+          <p>Yüksek servete ulaşmak için bir strateji belirlemelisin.</p>
+          ${s.money >= 1000 ? '<p class="stat-note">💰 Mevcut birikiminle yatırım seçeneğin açık.</p>' : '<p class="stat-note">📊 Önce düzenli gelir oluştur, sonra yatır.</p>'}
+        `,
+        choices: [
+          { label: '✂️ Bütçe disiplini',
+            next: 'y2026_wealth_strategy',
+            effects: [ { statDelta: { discipline: 3, focus: 2, happiness: -1 } } ] },
+          { label: '💼 Kariyeri büyüt',
+            next: 'y2027_wealth_career',
+            effects: [ { statDelta: { confidence: 2, social: 1 } } ] },
+          { label: '📈 Yatırıma başla',
+            next: 'y2027_wealth_invest',
+            effects: [ { statDelta: { intelligence: 2, focus: 1 } } ] },
+        ]
+      };
+    },
     y2026_wealth_strategy: (state) => ({
       text: `
-        <h2>2026 · Plan</h2>
+        <h2>2026 · Finansal Plan</h2>
         <p>İzlenecek ana yol?</p>
       `,
       choices: [
-        { label: 'Kariyeri büyüt', next: 'y2027_wealth_career' },
-        { label: 'Yatırıma başla', next: 'y2027_wealth_invest' },
-        { label: 'Kumar oyna (zar oyunu)', next: () => { state.data.flags.returnScene = 'y2026_wealth_strategy'; return 'game_dice_intro'; } },
-        { label: 'Blackjack (21) oyna', next: () => { state.data.flags.returnScene = 'y2026_wealth_strategy'; return 'game_bj_intro'; } },
-        { label: 'Pişti oyna', next: () => { state.data.flags.returnScene = 'y2026_wealth_strategy'; return 'game_pisti_intro'; } }
+        { label: '💼 Kariyeri büyüt',
+          next: 'y2027_wealth_career' },
+        { label: '📈 Yatırıma başla',
+          next: 'y2027_wealth_invest' },
+        { label: '🎲 Kumar oyna (zar oyunu)',
+          next: (st) => { st.setFlag('returnScene', 'y2026_wealth_strategy'); return 'game_dice_intro'; } },
+        { label: '🃏 Blackjack (21) oyna',
+          next: (st) => { st.setFlag('returnScene', 'y2026_wealth_strategy'); return 'game_bj_intro'; } },
+        { label: '🃏 Pişti oyna',
+          next: (st) => { st.setFlag('returnScene', 'y2026_wealth_strategy'); return 'game_pisti_intro'; } },
       ]
     }),
     y2027_wealth_career: (state) => ({
@@ -1261,71 +1893,107 @@ function getScenes() {
         <p>Geliri nasıl artırırsın?</p>
       `,
       choices: [
-        { label: 'Maaş pazarlığı (güvenli)', next: 'y2028_wealth_business', effects: [ { statDelta: { money: (state.data.stats.confidence >= 60 ? 800 : 400), confidence: 1 } } ] },
-        { label: 'Yan iş (dengeli)', next: 'y2028_wealth_business', effects: [ { statDelta: { money: 700, focus: -1 } } ] },
-        { label: 'Taşın ve fırsat kovala (riskli)', next: 'y2028_wealth_business', effects: [ { statDelta: { money: (Math.random() < 0.5 ? 1200 : -600), confidence: 2, social: 1 } } ] },
-        { label: 'Kredi çek (kaldıraç)', next: 'y2027_wealth_credit' }
+        { label: '🤝 Maaş pazarlığı',
+          next: (state) => {
+            const gain = state.data.stats.confidence >= 60 ? 800 : 400;
+            state.data.stats.money += gain;
+            state.data.stats.confidence += 1;
+            return 'y2028_wealth_business';
+          } },
+        { label: '💻 Yan iş kur',
+          next: 'y2028_wealth_business',
+          effects: [ { statDelta: { money: 700, focus: -1, health: -1 } } ] },
+        { label: '✈️ Taşın ve fırsat kovala',
+          next: (state) => {
+            const win = Math.random() < 0.5;
+            state.data.stats.money += win ? 1200 : -600;
+            state.data.stats.confidence += 2;
+            state.data.stats.social += 1;
+            return 'y2028_wealth_business';
+          } },
+        { label: '🏦 Kredi çek (kaldıraç)',
+          next: 'y2027_wealth_credit' },
       ]
     }),
     y2027_wealth_credit: (state) => ({
       text: `
         <h2>2027 · Kredi</h2>
-        <p>İş/yaşam kaldıraç için kredi kullanıyorsun.</p>
+        <p>Kaldıraç için kredi kullanıyorsun. Geri ödeme planını yap.</p>
       `,
       choices: [
-        { label: 'Makul tutar (güvenli)', next: 'y2028_wealth_business', effects: [ { statDelta: { money: 1000 } }, { setFlag: { loanInterest: true } } ] },
-        { label: 'Orta tutar (dengeli)', next: 'y2028_wealth_business', effects: [ { statDelta: { money: 1600 } }, { setFlag: { loanInterest: true } } ] },
-        { label: 'Yüksek kaldıraç (riskli)', next: 'y2028_wealth_business', effects: [ { statDelta: { money: 2500 } }, { setFlag: { loanInterest: true } } ] }
+        { label: '🟢 Makul tutar',
+          next: 'y2028_wealth_business',
+          effects: [ { setFlag: { loanInterest: true } }, { statDelta: { money: 1000, discipline: 1 } } ] },
+        { label: '🟡 Orta tutar',
+          next: 'y2028_wealth_business',
+          effects: [ { setFlag: { loanInterest: true } }, { statDelta: { money: 1600, happiness: -1 } } ] },
+        { label: '🔴 Yüksek kaldıraç',
+          next: 'y2028_wealth_business',
+          effects: [ { setFlag: { loanInterest: true } }, { statDelta: { money: 2500, happiness: -2, health: -1 } } ] },
       ]
     }),
     y2027_wealth_invest: (state) => ({
       text: `
         <h2>2027 · Yatırım</h2>
-        <p>Risk profilini seç.</p>
+        <p>Risk profilini seç. Şans faktörü devreye giriyor.</p>
       `,
       choices: [
-        { label: 'Güvenli (endeks/mevduat)', next: 'y2028_wealth_business', effects: [ (() => {
-          const s = state.data.stats; const money = s.money || 0; const stake = Math.max(200, Math.round(money * 0.2));
-          const luck = s.luck || 50; const bias = (luck - 50) / 200; // -0.25..+0.25
-          const pct = (Math.random() * 0.10 - 0.02) + bias; // ~ -2%..+8% biased
-          const delta = Math.round(stake * pct);
-          return { statDelta: { money: delta } };
-        })() ] },
-        { label: 'Dengeli (fon/gayrimenkul)', next: 'y2028_wealth_business', effects: [ (() => {
-          const s = state.data.stats; const money = s.money || 0; const stake = Math.max(300, Math.round(money * 0.3));
-          const luck = s.luck || 50; const bias = (luck - 50) / 150;
-          const pct = (Math.random() * 0.30 - 0.10) + bias; // -10%..+20% biased
-          const delta = Math.round(stake * pct);
-          return { statDelta: { money: delta } };
-        })() ] },
-        { label: 'Riskli (kaldıraç/kripto)', next: 'y2028_wealth_business', effects: [ (() => {
-          const s = state.data.stats; const money = s.money || 0; const stake = Math.max(400, Math.round(money * 0.4));
-          const luck = s.luck || 50; const bias = (luck - 50) / 100;
-          const pct = (Math.random() * 1.00 - 0.40) + bias; // -40%..+60% biased
-          const delta = Math.round(stake * pct);
-          return { statDelta: { money: delta, happiness: delta >= 0 ? 1 : -1 } };
-        })() ] }
+        { label: '🟢 Güvenli (endeks/mevduat)',
+          next: (state) => {
+            const s = state.data.stats;
+            const stake = Math.max(200, Math.round(s.money * 0.2));
+            const pct = (Math.random() * 0.10 - 0.02) + (s.luck - 50) / 200;
+            s.money += Math.round(stake * pct);
+            return 'y2028_wealth_business';
+          } },
+        { label: '🟡 Dengeli (fon/gayrimenkul)',
+          next: (state) => {
+            const s = state.data.stats;
+            const stake = Math.max(300, Math.round(s.money * 0.3));
+            const pct = (Math.random() * 0.30 - 0.10) + (s.luck - 50) / 150;
+            s.money += Math.round(stake * pct);
+            return 'y2028_wealth_business';
+          } },
+        { label: '🔴 Riskli (kaldıraç/kripto)',
+          next: (state) => {
+            const s = state.data.stats;
+            const stake = Math.max(400, Math.round(s.money * 0.4));
+            const pct = (Math.random() * 1.00 - 0.40) + (s.luck - 50) / 100;
+            const delta = Math.round(stake * pct);
+            s.money += delta;
+            s.happiness += delta >= 0 ? 1 : -2;
+            return 'y2028_wealth_business';
+          } },
       ]
     }),
     y2028_wealth_business: (state) => ({
       text: `
-        <h2>2028 · İş/Operasyon</h2>
-        <p>Hangi yoldan ölçeklenir?</p>
+        <h2>2028 · İş Ölçekleme</h2>
+        <p>Hangi yoldan büyürsün?</p>
       `,
       choices: [
-        { label: 'Küçük işletme (dengeli)', next: 'y2028_wealth_shocks', effects: [ (() => {
-          const s = state.data.stats; const base = Math.max(300, Math.round(s.money * 0.1));
-          const pct = (Math.random() * 0.40 - 0.10); // -10%..+30%
-          const delta = Math.round(base * pct);
-          return { statDelta: { money: delta, confidence: delta > 0 ? 1 : 0 } };
-        })() ] },
-        { label: 'Franchise (güvenli maliyet, sınırlı kazanç)', next: 'y2028_wealth_shocks', effects: [ (() => {
-          const cost = -1200; const gain = Math.random() < 0.7 ? 600 : 0; return { statDelta: { money: cost + gain } };
-        })() ] },
-        { label: 'E-ticaret (riskli ölçek)', next: 'y2028_wealth_shocks', effects: [ (() => {
-          const base = 500; const swing = Math.round((Math.random() * 2 - 0.8) * 800); return { statDelta: { money: base + swing } };
-        })() ] },
-        { label: 'Acil durum fonu ayır', next: 'y2028_wealth_emergency' }
+        { label: '🏪 Küçük işletme',
+          next: (state) => {
+            const base = Math.max(300, Math.round(state.data.stats.money * 0.1));
+            const delta = Math.round(base * (Math.random() * 0.40 - 0.10));
+            state.data.stats.money += delta;
+            if (delta > 0) state.data.stats.confidence += 1;
+            return 'y2028_wealth_shocks';
+          } },
+        { label: '🏬 Franchise',
+          next: (state) => {
+            const gain = Math.random() < 0.7 ? 600 : 0;
+            state.data.stats.money += -1200 + gain;
+            return 'y2028_wealth_shocks';
+          } },
+        { label: '🛒 E-ticaret (riskli ölçek)',
+          next: (state) => {
+            const delta = 500 + Math.round((Math.random() * 2 - 0.8) * 800);
+            state.data.stats.money += delta;
+            return 'y2028_wealth_shocks';
+          } },
+        { label: '🛡️ Acil durum fonu ayır',
+          next: 'y2028_wealth_emergency' },
       ]
     }),
     y2028_wealth_emergency: (state) => ({
@@ -1334,9 +2002,14 @@ function getScenes() {
         <p>Beklenmedik giderlere karşı yastık oluştur.</p>
       `,
       choices: [
-        { label: '3 aylık gider', next: 'y2028_wealth_shocks', effects: [ { statDelta: { money: -500 } }, { setFlag: { emergencyFund: true } } ] },
-        { label: '6 aylık gider', next: 'y2028_wealth_shocks', effects: [ { statDelta: { money: -900 } }, { setFlag: { emergencyFund: true } } ] },
-        { label: 'Vazgeç', next: 'y2028_wealth_shocks' }
+        { label: '🟢 3 aylık gider (500₺)',
+          next: 'y2028_wealth_shocks',
+          effects: [ { setFlag: { emergencyFund: true } }, { statDelta: { money: -500, discipline: 2 } } ] },
+        { label: '🟡 6 aylık gider (900₺)',
+          next: 'y2028_wealth_shocks',
+          effects: [ { setFlag: { emergencyFund: true } }, { statDelta: { money: -900, confidence: 2, happiness: 1 } } ] },
+        { label: '❌ Şimdi vazgeç',
+          next: 'y2028_wealth_shocks' },
       ]
     }),
     y2028_wealth_shocks: (state) => ({
@@ -1345,22 +2018,41 @@ function getScenes() {
         <p>Piyasa dalgalandı. Durumunu değerlendir.</p>
       `,
       choices: [
-        { label: 'Devam et', next: 'y2029_wealth_tax', effects: [ (() => {
-          const swing = Math.round((Math.random() * 2 - 1) * 600); return { statDelta: { money: swing } };
-        })() ] },
-        { label: 'Sigorta/hedge', next: 'y2029_wealth_tax', effects: [ { statDelta: { money: -200 } } ] },
-        { label: 'Risk artır', next: 'y2029_wealth_tax', effects: [ { statDelta: { money: Math.round((Math.random() - 0.4) * 1200) } } ] }
+        { label: '📊 Devam et (bekle)',
+          next: (state) => {
+            const swing = Math.round((Math.random() * 2 - 1) * 600);
+            state.data.stats.money += swing;
+            return 'y2029_wealth_tax';
+          } },
+        { label: '🛡️ Sigorta / hedge',
+          next: 'y2029_wealth_tax',
+          effects: [ { statDelta: { money: -200, confidence: 1 } } ] },
+        { label: '🔥 Risk artır',
+          next: (state) => {
+            state.data.stats.money += Math.round((Math.random() - 0.4) * 1200);
+            return 'y2029_wealth_tax';
+          } },
       ]
     }),
     y2029_wealth_tax: (state) => ({
       text: `
         <h2>2029 · Vergi ve Uyum</h2>
-        <p>Finansal yıl kapanışı.</p>
+        <p>Finansal yıl kapanışı. Vergi stratejin?</p>
       `,
       choices: [
-        { label: 'Tam uyum (güvenli)', next: 'y2029_wealth_manage', effects: [ { statDelta: { money: -200 } } ] },
-        { label: 'Optimizasyon (dengeli)', next: 'y2029_wealth_manage', effects: [ { statDelta: { money: -100, confidence: 1 } } ] },
-        { label: 'Kısayol dene (riskli)', next: 'y2029_wealth_manage', effects: [ { statDelta: { money: Math.random() < 0.4 ? 400 : -600, confidence: -1 } } ] }
+        { label: '✅ Tam uyum',
+          next: 'y2029_wealth_manage',
+          effects: [ { statDelta: { money: -200, discipline: 1 } } ] },
+        { label: '🧮 Yasal optimizasyon',
+          next: 'y2029_wealth_manage',
+          effects: [ { statDelta: { money: -100, confidence: 1, intelligence: 1 } } ] },
+        { label: '⚠️ Kısayol dene (riskli)',
+          next: (state) => {
+            const win = Math.random() < 0.4;
+            state.data.stats.money += win ? 400 : -600;
+            state.data.stats.confidence -= 1;
+            return 'y2029_wealth_manage';
+          } },
       ]
     }),
     y2029_wealth_manage: (state) => ({
@@ -1369,27 +2061,42 @@ function getScenes() {
         <p>Portföy ve risk ayarı.</p>
       `,
       choices: [
-        { label: 'Borç yönetimi', next: 'y2030_wealth_eval', effects: [ (() => {
-          if (state.data.flags.loanInterest) { return { statDelta: { money: -400 } }; } return { statDelta: { confidence: 1 } };
-        })() ] },
-        { label: 'Sigorta ile koru', next: 'y2030_wealth_eval', effects: [ { statDelta: { money: -200 } }, { setFlag: { insured: true } } ] },
-        { label: 'Çeşitlendir', next: 'y2030_wealth_eval', effects: [ (() => {
-          const swing = Math.round((Math.random()*0.4 - 0.1) * 1000); return { statDelta: { money: swing } };
-        })() ] },
-        { label: 'Şüpheli teklif (risk)', next: 'y2030_wealth_eval', effects: [ { statDelta: { money: Math.round((Math.random()*2 - 1.2) * 1500) } } ] }
+        { label: '🏦 Borç yönetimi',
+          next: (state) => {
+            if (state.data.flags.loanInterest) state.data.stats.money -= 400;
+            else state.data.stats.confidence += 1;
+            return 'y2030_wealth_eval';
+          } },
+        { label: '🛡️ Sigorta ile koru',
+          next: 'y2030_wealth_eval',
+          effects: [ { setFlag: { insured: true } }, { statDelta: { money: -200, confidence: 2 } } ] },
+        { label: '📊 Portföyü çeşitlendir',
+          next: (state) => {
+            state.data.stats.money += Math.round((Math.random() * 0.4 - 0.1) * 1000);
+            return 'y2030_wealth_eval';
+          } },
+        { label: '🎰 Şüpheli yüksek getiri (risk)',
+          next: (state) => {
+            state.data.stats.money += Math.round((Math.random() * 2 - 1.2) * 1500);
+            return 'y2030_wealth_eval';
+          } },
       ]
     }),
-    y2030_wealth_eval: (state) => ({
-      text: `
-        <h2>2030 · Servet Değerlendirmesi</h2>
-        <p>Varlık durumunu gözden geçir.</p>
-      `,
-      choices: [
-        { label: 'Hedefi değerlendir', next: 'goal_eval' },
-        { label: 'Devam et', next: 'y2030_outcome' },
-        { label: 'Başa dön', next: 'intro' }
-      ]
-    }),
+    y2030_wealth_eval: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2030 · Servet Değerlendirmesi</h2>
+          <p>Para: <strong>${s.money >= 0 ? '+' : ''}${s.money}₺</strong></p>
+          <p>${s.money >= 5000 ? '🏆 Hedef çok yakın!' : s.money >= 2000 ? '📈 İyi ilerleme.' : '📊 Daha yol var.'}</p>
+        `,
+        choices: [
+          { label: '🎯 Hedefi değerlendir', next: 'goal_eval' },
+          { label: '→ Final sahnesine geç', next: 'y2030_outcome' },
+          { label: '🔄 Başa dön', next: 'intro' },
+        ]
+      };
+    },
     // Mini-oyun: Zar (tek/çift)
     game_dice_intro: (state) => ({
       text: `
@@ -1581,26 +2288,42 @@ function getScenes() {
       ]
     }),
     // Girişim yolu
-    y2027_startup: (state) => ({
-      text: `
-        <h2>2027 · Girişim Yılı</h2>
-        <p>Bir ürün fikrin var. Nasıl ilerlersin?</p>
-      `,
-      choices: [
-        { label: 'Mentor bul (güvenli)', next: 'y2028_startup_build', effects: [ { statDelta: { social: 2, confidence: 1 } } ] },
-        { label: 'Hızlı MVP (dengeli)', next: 'y2028_startup_build', effects: [ { statDelta: { intelligence: 2, focus: 2 } } ] },
-        { label: 'Agresif yatırım (riskli)', next: 'y2028_startup_build', effects: [ { statDelta: { money: -800, confidence: 3 } } ] }
-      ]
-    }),
+    y2027_startup: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2027 · Girişim — Fikir Testi</h2>
+          <p>Bir sorunu çözmek istiyorsun. İlk adım hangisi?</p>
+          ${s.charisma >= 60 ? '<p class="stat-note">📊 Yüksek karizman yatırımcıları ikna etmede avantaj sağlar.</p>' : ''}
+        `,
+        choices: [
+          { label: '👥 Ortak bul, takım kur',
+            next: 'y2028_startup_build',
+            effects: [ { statDelta: { social: 4, confidence: 3, creativity: -1 } } ] },
+          { label: '🛠️ Hızlı MVP yap, test et',
+            next: 'y2028_startup_build',
+            effects: [ { statDelta: { intelligence: 3, creativity: 3, confidence: 3, health: -2, money: -300 } } ] },
+          { label: '🔍 Pazar araştır',
+            next: 'y2028_startup_build',
+            effects: [ { statDelta: { intelligence: 4, social: 2, confidence: -1 } } ] },
+        ]
+      };
+    },
     y2028_startup_build: (state) => ({
       text: `
         <h2>2028 · Ürün Geliştirme</h2>
         <p>Takım kur, lansman planı yap.</p>
       `,
       choices: [
-        { label: 'Küçük ama yetkin ekip', next: 'y2029_startup_pitch', effects: [ { statDelta: { money: -600, social: 2 } } ] },
-        { label: 'Freelance destek', next: 'y2029_startup_pitch', effects: [ { statDelta: { money: -300 } } ] },
-        { label: 'Tek başına devam', next: 'y2029_startup_pitch', effects: [ { statDelta: { confidence: 2 } } ] }
+        { label: '👩‍💻 Küçük ama yetkin ekip',
+          next: 'y2029_startup_pitch',
+          effects: [ { statDelta: { social: 3, confidence: 2, money: -600 } } ] },
+        { label: '💻 Freelance destek',
+          next: 'y2029_startup_pitch',
+          effects: [ { statDelta: { creativity: 2, intelligence: 1, money: -300 } } ] },
+        { label: '🔥 Tek başına, tam odak',
+          next: 'y2029_startup_pitch',
+          effects: [ { statDelta: { confidence: 3, focus: 2, health: -2, social: -2 } } ] },
       ]
     }),
     y2029_startup_pitch: (state) => ({
@@ -1609,13 +2332,20 @@ function getScenes() {
         <p>Pitch günü geldi. Sunum ve sorular.</p>
       `,
       choices: [
-        { label: 'Pitch yap', next: () => {
-          const s = state.data.stats;
-          const score = Math.round(s.confidence*0.45 + s.social*0.3 + s.intelligence*0.25);
-          return score >= 65 ? 'y2030_startup_success' : 'y2030_startup_fail';
-        } },
-        { label: 'Demo gününü ertele', next: 'y2028_startup_build', effects: [ { statDelta: { confidence: -1 } } ] },
-        { label: 'Stratejik ortak ara', next: 'y2030_startup_success', effects: [ { statDelta: { money: 1200, social: 2 } } ] }
+        { label: '🎤 Pitch yap',
+          next: (state) => {
+            const s = state.data.stats;
+            const score = Math.round(s.confidence*0.4 + s.charisma*0.35 + s.focus*0.25) + Math.round((s.luck - 50) / 10);
+            if (score >= 62) { state.setFlag('startupFunded', true); state.data.stats.money += 4000; }
+            else { state.data.stats.money -= 200; }
+            return score >= 62 ? 'y2030_startup_success' : 'y2030_startup_fail';
+          } },
+        { label: '⏳ Demo gününü ertele',
+          next: 'y2028_startup_build',
+          effects: [ { statDelta: { confidence: -1, intelligence: 2 } } ] },
+        { label: '🤝 Stratejik ortak ara',
+          next: 'y2030_startup_success',
+          effects: [ { statDelta: { money: 1200, social: 3, confidence: 2 } } ] },
       ]
     }),
     y2030_startup_success: (state) => ({
@@ -1624,93 +2354,151 @@ function getScenes() {
         <p>Yatırımı aldın ve büyüyorsun.</p>
       `,
       choices: [
-        { label: 'Devam büyüt', next: 'y2030_outcome', effects: [ { statDelta: { money: 2000, confidence: 4 } } ] },
-        { label: 'Kısmi nakde çevir', next: 'y2030_outcome', effects: [ { statDelta: { money: 1200, happiness: 2 } } ] },
-        { label: 'Yurtdışına açıl', next: 'y2030_outcome', effects: [ { statDelta: { money: 800, social: 2, confidence: 2 } }, { numberDelta: { travelCount: 1 } } ] }
+        { label: '🚀 Büyümeye devam et',
+          next: 'y2030_outcome',
+          effects: [ { statDelta: { money: 2000, confidence: 4, health: -1 } } ] },
+        { label: '💵 Kısmi nakde çevir',
+          next: 'y2030_outcome',
+          effects: [ { statDelta: { money: 1500, happiness: 3 } } ] },
+        { label: '🌍 Yurt dışına açıl',
+          next: 'y2030_outcome',
+          effects: [ { statDelta: { money: 800, social: 2, confidence: 2, happiness: 2 } }, { numberDelta: { travelCount: 1 } } ] },
       ]
     }),
     y2030_startup_fail: (state) => ({
       text: `
         <h2>2030 · Zor Dönem</h2>
-        <p>Yatırım olmadı. Yolu yeniden düşün.</p>
+        <p>Yatırım olmadı. Bu yolun sonu değil.</p>
       `,
       choices: [
-        { label: 'Tekrar dene', next: 'y2027_startup', effects: [ { statDelta: { confidence: -2 } } ] },
-        { label: 'Kurumsala dön', next: 'y2024_career', effects: [ { statDelta: { confidence: -1 } } ] },
-        { label: 'Pivot et', next: 'y2028_startup_build', effects: [ { statDelta: { money: -200, confidence: 1 } } ] }
+        { label: '🔄 Pivot et ve yeniden sun',
+          next: 'y2028_startup_build',
+          effects: [ { statDelta: { confidence: -1, intelligence: 2 } } ] },
+        { label: '💰 Gelire odaklan',
+          next: 'y2030_outcome',
+          effects: [ { statDelta: { money: 700, confidence: 2, creativity: -1 } } ] },
+        { label: '🏢 Kurumsala dön',
+          next: 'y2024_career',
+          effects: [ { statDelta: { confidence: -1, happiness: 2 } } ] },
       ]
     }),
     // Akademi yolu
-    y2027_academia: (state) => ({
-      text: `
-        <h2>2027 · Akademik Hedef</h2>
-        <p>Yüksek lisans/doktora niyeti.</p>
-      `,
-      choices: [
-        { label: 'Yoğun araştırma (güvenli)', next: 'y2028_academia_apply', effects: [ { statDelta: { intelligence: 3, focus: 3 } } ] },
-        { label: 'Dengeli çalışma', next: 'y2028_academia_apply', effects: [ { statDelta: { intelligence: 2, social: 1 } } ] },
-        { label: 'Sosyal ağı genişlet', next: 'y2028_academia_apply', effects: [ { statDelta: { social: 3, confidence: 1 } } ] }
-      ]
-    }),
+    y2027_academia: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2027 · Akademi Yolu</h2>
+          <p>Araştırma, yayın, tez. Uzun bir yol — ama kalıcı bir etki.</p>
+          ${s.focus >= 65 ? '<p class="stat-note">📊 Güçlü odağın derin araştırma için vazgeçilmez.</p>' : ''}
+        `,
+        choices: [
+          { label: '🌍 Yurt dışı yüksek lisans',
+            next: 'y2028_academia_apply',
+            conditions: [ { statGte: { key: 'intelligence', value: 68 } } ],
+            effects: [ { statDelta: { confidence: 4, intelligence: 3, money: -600, happiness: -2 } } ] },
+          { label: '🇹🇷 Ülkede yüksek lisans',
+            next: 'y2028_academia_apply',
+            effects: [ { setFlag: { academiaTrack: true } }, { statDelta: { intelligence: 4, focus: 3, money: -300, social: -1 } } ] },
+          { label: '📝 Araştırma asistanlığı',
+            next: 'y2028_academia_apply',
+            effects: [ { setFlag: { academiaTrack: true } }, { statDelta: { intelligence: 3, money: 400, confidence: -1 } } ] },
+        ]
+      };
+    },
     y2028_academia_apply: (state) => ({
       text: `
-        <h2>2028 · Başvuru</h2>
-        <p>Referans, yayın ve dil skoru.</p>
+        <h2>2028 · Yurt Dışı Başvuruları</h2>
+        <p>IELTS, referanslar, niyet mektubu…</p>
       `,
       choices: [
-        { label: 'Başvur', next: () => {
-          const s = state.data.stats;
-          const score = Math.round(s.intelligence*0.55 + s.focus*0.25 + s.discipline*0.2);
-          return score >= 72 ? 'y2029_academia_accept' : 'y2029_academia_reject';
-        } }
+        { label: '📄 Başvur',
+          next: (state) => {
+            const s = state.data.stats;
+            const score = Math.round(s.intelligence*0.55 + s.focus*0.25 + s.discipline*0.2);
+            return score >= 72 ? 'y2029_academia_accept' : 'y2029_academia_reject';
+          } },
+        { label: '⏳ Bir yıl daha hazırlan',
+          next: 'y2027_academia',
+          effects: [ { statDelta: { intelligence: 3, focus: 2, money: -100 } } ] },
       ]
     }),
     y2029_academia_accept: (state) => ({
       text: `
-        <h2>2029 · Kabul</h2>
-        <p>Programdan kabul aldın.</p>
+        <h2>2029 · Kabul Aldın</h2>
+        <p>Program seni seçti. Nasıl ilerlersin?</p>
       `,
       choices: [
-        { label: 'Devam', next: 'y2030_outcome', effects: [ { statDelta: { intelligence: 2, confidence: 2 } } ] },
-        { label: 'Burs görüşmesi', next: 'y2030_outcome', effects: [ { statDelta: { money: 600, confidence: 1 } } ] },
-        { label: 'Ara ver', next: 'y2026_growth', effects: [ { statDelta: { happiness: 2 } } ] }
+        { label: '✅ Programı tamamla',
+          next: 'y2030_outcome',
+          effects: [ { setFlag: { academiaTrack: true } }, { statDelta: { intelligence: 4, confidence: 3, social: -1 } } ] },
+        { label: '🏆 Burs görüşmesi yap',
+          next: 'y2030_outcome',
+          effects: [ { setFlag: { academiaTrack: true } }, { addTrait: 'englishB2' }, { statDelta: { money: 600, confidence: 3, intelligence: 2 } } ] },
+        { label: '🌍 Yurt dışı araştırma fırsatı',
+          next: 'y2030_outcome',
+          effects: [ { setFlag: { abroadAccepted: true } }, { statDelta: { confidence: 5, intelligence: 3, happiness: -2, money: -400 } } ] },
       ]
     }),
     y2029_academia_reject: (state) => ({
       text: `
-        <h2>2029 · Red</h2>
-        <p>Kabul gelmedi. Strateji değiş.</p>
+        <h2>2029 · Red Aldın</h2>
+        <p>Kabul gelmedi. Bu yolun sonu değil.</p>
       `,
       choices: [
-        { label: 'Araştırmaya devam', next: 'y2027_academia', effects: [ { statDelta: { focus: 2 } } ] },
-        { label: 'İş piyasası', next: 'y2024_career' },
-        { label: 'Alan değiştir', next: 'y2027_academia', effects: [ { statDelta: { confidence: 1 } }, { addTrait: 'multiDisciplinary' } ] }
+        { label: '🗣️ Dil kursu (B2)',
+          next: 'y2030_outcome',
+          effects: [ { addTrait: 'englishB2' }, { statDelta: { intelligence: 3, confidence: 3, money: -400, social: -1 } } ] },
+        { label: '📖 Araştırma asistanlığı',
+          next: 'y2030_outcome',
+          effects: [ { setFlag: { academiaTrack: true } }, { statDelta: { intelligence: 4, money: 300, happiness: -1 } } ] },
+        { label: '👔 İş piyasasına yönel',
+          next: 'y2024_career',
+          effects: [ { statDelta: { confidence: -1, happiness: 2 } } ] },
       ]
     }),
     // Seyahat yolu
     y2027_travel: (state) => ({
       text: `
-        <h2>2027 · Seyahat Planı</h2>
-        <p>Dünyayı tanıma isteği.</p>
+        <h2>2027 · Dünyayı Keşfet</h2>
+        <p>Haritalarda değil, ayaklarınla öğren.</p>
       `,
       choices: [
-        { label: 'Ucuz rota (güvenli)', next: 'y2028_travel_hop', effects: [ { numberDelta: { travelCount: 1 } }, { statDelta: { money: -300, happiness: 2 } } ] },
-        { label: 'Dengeli rota', next: 'y2028_travel_hop', effects: [ { numberDelta: { travelCount: 2 } }, { statDelta: { money: -600, happiness: 3 } } ] },
-        { label: 'Lüks rota (riskli)', next: 'y2028_travel_hop', effects: [ { numberDelta: { travelCount: 3 } }, { statDelta: { money: -1500, happiness: 4 } } ] }
+        { label: '🏔️ Balkanlar & Doğu Avrupa',
+          next: 'y2028_travel_hop',
+          effects: [ { statDelta: { happiness: 4, social: 2, money: -400, discipline: -1 } }, { numberDelta: { travelCount: 2 } } ] },
+        { label: '🌅 Orta Doğu & Asya',
+          next: 'y2028_travel_hop',
+          effects: [ { statDelta: { happiness: 4, empathy: 2, money: -500, health: -1 } }, { numberDelta: { travelCount: 2 } } ] },
+        { label: '🌊 Güney Amerika',
+          next: 'y2028_travel_hop',
+          effects: [ { statDelta: { happiness: 5, confidence: 2, money: -600, health: -1 } }, { numberDelta: { travelCount: 2 } } ] },
       ]
     }),
-    y2028_travel_hop: (state) => ({
-      text: `
-        <h2>2028 · Yeni Durak</h2>
-        <p>Yeni ülke/şehir.</p>
-      `,
-      choices: [
-        { label: 'Yerel etkinlik', next: 'y2029_travel_wrap', effects: [ { statDelta: { social: 2 } }, { numberDelta: { travelCount: 1 } } ] },
-        { label: 'Kısa çalışma vizesi', next: 'y2029_travel_wrap', effects: [ { statDelta: { money: 400, confidence: 1 } } ] },
-        { label: 'Turistik gezi', next: 'y2029_travel_wrap', effects: [ { statDelta: { happiness: 2 } } ] },
-        { label: 'Vize/rota/lojistik sınavı (30 soru)', next: 'y2028_travel_cases' }
-      ]
-    }),
+    y2028_travel_hop: (state) => {
+      const n = state.data.numbers || {};
+      return {
+        text: `
+          <h2>2028 · Yolculuk Genişliyor</h2>
+          <p>Seyahat: <strong>${n.travelCount || 0}</strong>. Daha uzağa açılmak ister misin?</p>
+        `,
+        choices: [
+          { label: '🌏 Uzak Doğu',
+            next: 'y2029_travel_wrap',
+            effects: [ { statDelta: { happiness: 5, creativity: 3, money: -700, health: -1 } }, { numberDelta: { travelCount: 3 } } ] },
+          { label: '🌎 Kuzey Amerika',
+            next: 'y2029_travel_wrap',
+            effects: [ { statDelta: { happiness: 4, confidence: 3, money: -900, social: -1 } }, { numberDelta: { travelCount: 3 } } ] },
+          { label: '💼 Kısa çalışma vizesi',
+            next: 'y2029_travel_wrap',
+            effects: [ { statDelta: { money: 400, confidence: 2, social: 2 } }, { numberDelta: { travelCount: 1 } } ] },
+          { label: '🏠 Türkiye\'ye dön',
+            next: 'y2024_career',
+            effects: [ { statDelta: { confidence: 2, money: 400, happiness: -1 } } ] },
+          { label: '📚 Seyahat sorusu çöz',
+            next: 'y2028_travel_cases' },
+        ]
+      };
+    },
     y2028_travel_cases: (state) => ({
       text: `
         <h2>Seyahat Sorusu</h2>
@@ -1732,28 +2520,56 @@ function getScenes() {
         { label: 'Devam', next: 'y2029_travel_wrap' }
       ]
     }),
-    y2029_travel_wrap: (state) => ({
-      text: `
-        <h2>2029 · Yolculuk</h2>
-        <p>Yeni deneyimler kattın.</p>
-      `,
-      choices: [
-        { label: 'Devam', next: 'y2030_outcome' },
-        { label: 'Gezi blogu aç', next: 'y2030_outcome', effects: [ { statDelta: { confidence: 1, money: 200 } } ] },
-        { label: 'Türkiye’ye dön ve iş bak', next: 'y2024_career', effects: [ { statDelta: { confidence: 1 } } ] }
-      ]
-    }),
-    y2030_outcome: (state) => ({
-      text: `
-        <h2>2030 · Büyük Değerlendirme</h2>
-        <p>Seçimler toplam sonucu belirledi.</p>
-      `,
-      choices: [
-        { label: 'Hedefi değerlendir', next: 'goal_eval' },
-        { label: 'Yeni rota çiz', next: 'y2026_growth' },
-        { label: 'Başa dön', next: 'intro' }
-      ]
-    }),
+    y2029_travel_wrap: (state) => {
+      const n = state.data.numbers || {};
+      return {
+        text: `
+          <h2>2029 · Yolculuk Tamamlandı</h2>
+          <p>Toplam seyahat: <strong>${n.travelCount || 0}</strong>. Yeni deneyimler kattın.</p>
+        `,
+        choices: [
+          { label: '🎒 Seyahate devam et',
+            next: 'y2030_outcome',
+            effects: [ { statDelta: { happiness: 3, social: 2, creativity: 2, money: -300 } }, { numberDelta: { travelCount: 1 } } ] },
+          { label: '📝 Gezi blogu / içerik üret',
+            next: 'y2030_outcome',
+            effects: [ { statDelta: { confidence: 2, creativity: 3, money: 300 } } ] },
+          { label: '🏠 Türkiye\'ye dön, kariyer odaklan',
+            next: 'y2024_career',
+            effects: [ { statDelta: { confidence: 2, money: 400, happiness: -1 } } ] },
+        ]
+      };
+    },
+    y2030_outcome: (state) => {
+      const s = state.data.stats; const f = state.data.flags; const t = state.data.traits || [];
+      const n = state.data.numbers || {};
+      const path = f.milBranch ? `🎖️ ${f.milBranch} kuvvetleri`
+        : f.uniField === 'stem' ? '⚙️ Mühendislik/Teknik'
+        : f.uniField === 'design' ? '🎨 Tasarım/Sanat'
+        : f.startupFunded ? '🚀 Girişimci'
+        : f.academiaTrack ? '🎓 Akademisyen'
+        : t.includes('olympian') ? '🏅 Olimpiyatçı'
+        : t.includes('athlete') ? '🏅 Sporcu'
+        : f.engField ? `⚙️ ${f.engField} Mühendisi`
+        : '🌿 Genel Kariyer';
+      const emoji = s.happiness >= 70 ? '🌟' : s.happiness >= 55 ? '😊' : s.happiness >= 40 ? '🙂' : '😔';
+      return {
+        text: `
+          <h2>2030 · 30 Yaşında — Hayatının Bilançosu</h2>
+          <div style="text-align:center;font-size:2em">${emoji}</div>
+          <p><strong>Yol:</strong> ${path}</p>
+          <p>💰 Para: <strong>${s.money >= 0 ? '+' : ''}${s.money}₺</strong> ·
+          🌍 Seyahat: <strong>${n.travelCount || 0}</strong> ·
+          🏋️ Antrenman: <strong>${n.training || 0}</strong></p>
+          <p><strong>Özellikler:</strong> ${t.length ? t.join(' · ') : '—'}</p>
+        `,
+        choices: [
+          { label: '🎯 Hedefi değerlendir', next: 'goal_eval' },
+          { label: '🔄 Yeni rota çiz', next: 'y2026_growth' },
+          { label: '🔁 Yeni hayat başlat', next: 'intro' },
+        ]
+      };
+    },
     goal_eval: (state) => ({
       text: `
         <h2>Hedef Değerlendirme</h2>
@@ -1768,40 +2584,71 @@ function getScenes() {
         { label: 'Başa dön', next: 'intro' }
       ]
     }),
-    y2027_sports: (state) => ({
-      text: `
-        <h2>2027 · Spor</h2>
-        <p>Antrenman planı seç.</p>
-      `,
-      choices: [
-        { label: 'Antrenör ile çalış', next: 'y2028_sports_national', effects: [ { statDelta: { health: 6, confidence: 2 } } ] },
-        { label: 'Kendi programın', next: 'y2028_sports_national', effects: [ { statDelta: { health: 4 } } ] },
-        { label: 'Vazgeç ve geri dön', next: 'y2026_growth' }
-      ]
-    }),
+    y2027_sports: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2027 · Spor Yolu</h2>
+          <p>Antrenman yoğunlaşıyor.</p>
+          ${s.endurance >= 60 ? '<p class="stat-note">💪 Dayanıklılığın güçlü — uzun soluklu programlara uyumsun.</p>' : ''}
+        `,
+        choices: [
+          { label: '🧑‍🏫 Profesyonel antrenör tut',
+            next: 'y2028_sports_national',
+            effects: [ { statDelta: { health: 9, endurance: 5, confidence: 3, money: -500 } }, { numberDelta: { training: 3 } } ] },
+          { label: '🏃 Kendi programın',
+            next: 'y2028_sports_national',
+            effects: [ { statDelta: { health: 6, endurance: 3, focus: -1 } }, { numberDelta: { training: 1 } } ] },
+          { label: '🤝 Takımla çalış',
+            next: 'y2028_sports_national',
+            effects: [ { statDelta: { health: 7, social: 3, endurance: 3, confidence: -1 } }, { numberDelta: { training: 2 } } ] },
+        ]
+      };
+    },
     y2028_sports_national: (state) => ({
       text: `
-        <h2>2028 · Seçmeler</h2>
-        <p>Milli seçmelere katıl ya da yerel ligde kal.</p>
+        <h2>2028 · Milli Seçmeler</h2>
+        <p>Antrenman puanın: <strong>${(state.data.numbers && state.data.numbers.training) || 0}</strong>. Seçmeler için ≥3 gerekli.</p>
       `,
       choices: [
-        { label: 'Seçmelere katıl', next: 'y2029_sports_international', effects: [ { statDelta: { confidence: 2 } } ] },
-        { label: 'Yerel ligde kal', next: 'y2030_outcome', effects: [ { statDelta: { health: 1 } } ] },
-        { label: 'Antrenman kampı', next: 'y2029_sports_international', effects: [ { statDelta: { health: 2, endurance: 2 } }, { numberDelta: { training: 1 } } ] }
+        { label: '🥇 Seçmelere katıl',
+          next: 'y2029_sports_international',
+          conditions: [ { numberGte: { key: 'training', value: 3 } } ],
+          effects: [ { statDelta: { confidence: 2, money: -200 } } ] },
+        { label: '🏟️ Önce yerel ligde güçlen',
+          next: 'y2030_outcome',
+          effects: [ { statDelta: { health: 4, endurance: 2, confidence: 2, happiness: 3, money: 400 } }, { numberDelta: { training: 2 } } ] },
+        { label: '🏕️ Yoğun antrenman kampı',
+          next: 'y2029_sports_international',
+          effects: [ { statDelta: { health: 5, endurance: 4, happiness: -2, money: -300 } }, { numberDelta: { training: 2 } } ] },
       ]
     }),
-    y2029_sports_international: (state) => ({
-      text: `
-        <h2>2029 · Uluslararası</h2>
-        <p>Uluslararası turnuvaya katılıyorsun.</p>
-      `,
-      choices: [
-        { label: 'Devam', next: 'y2030_outcome', effects: [ { statDelta: { confidence: 3 } } ] },
-        { label: 'Taktik/strateji çalış (30 problem)', next: 'y2029_sport_cases' },
-        { label: 'Sponsor ara', next: 'y2030_outcome', effects: [ { statDelta: { money: 800, confidence: 1 } } ] },
-        { label: 'Zor antrenman (sakatlık riski)', next: 'y2029_sports_injury', effects: [ { statDelta: { health: -3, endurance: 2 } }, { numberDelta: { training: 1 } } ] }
-      ]
-    }),
+    y2029_sports_international: (state) => {
+      const s = state.data.stats;
+      return {
+        text: `
+          <h2>2029 · Uluslararası Arena</h2>
+          <p>Sağlık: <strong>${Math.round(s.health)}</strong> (olimpiyat için ≥85 gerekli).</p>
+        `,
+        choices: [
+          { label: '🏅 Olimpiyat hedefi',
+            next: 'y2030_outcome',
+            conditions: [ { statGte: { key: 'health', value: 85 } } ],
+            effects: [ { addTrait: 'olympian' }, { statDelta: { confidence: 8, happiness: 6, money: -500 } } ] },
+          { label: '🌍 Uluslararası turnuva',
+            next: 'y2030_outcome',
+            effects: [ { statDelta: { health: 5, confidence: 5, money: -300, happiness: -1 } } ] },
+          { label: '🇹🇷 Ulusal şampiyonluk',
+            next: 'y2030_outcome',
+            effects: [ { statDelta: { confidence: 4, happiness: 4, money: 300 } } ] },
+          { label: '💰 Sponsor ara',
+            next: 'y2030_outcome',
+            effects: [ { statDelta: { money: 800, confidence: 2, charisma: 1 } } ] },
+          { label: '📚 Taktik/strateji çalış',
+            next: 'y2029_sport_cases' },
+        ]
+      };
+    },
     y2029_sport_cases: (state) => ({
       text: `
         <h2>Strateji/Antrenman Sorusu</h2>
@@ -1827,12 +2674,18 @@ function getScenes() {
     y2029_sports_injury: (state) => ({
       text: `
         <h2>2029 · Sakatlık</h2>
-        <p>Küçük bir sakatlık yaşadın. Rotanı ayarla.</p>
+        <p>Yoğun antrenman bedelini verdi. Nasıl devam edersin?</p>
       `,
       choices: [
-        { label: 'Dinlen', next: 'y2030_outcome', effects: [ { statDelta: { health: 4, endurance: -1 } } ] },
-        { label: 'Bandajla devam', next: 'y2030_outcome', effects: [ { statDelta: { confidence: 1, health: -1 } } ] },
-        { label: 'Fizyoterapi', next: 'y2030_outcome', effects: [ { statDelta: { money: -300, health: 2 } } ] }
+        { label: '🛌 Tam dinlenme',
+          next: 'y2030_outcome',
+          effects: [ { statDelta: { health: 5, endurance: -1, happiness: -1 } } ] },
+        { label: '💊 Bandajla sahaya dön',
+          next: 'y2030_outcome',
+          effects: [ { statDelta: { confidence: 2, health: -2 } } ] },
+        { label: '🏥 Fizyoterapi + uzman desteği',
+          next: 'y2030_outcome',
+          effects: [ { statDelta: { money: -300, health: 4, endurance: 1 } } ] },
       ]
     }),
     // Rastgele olaylar

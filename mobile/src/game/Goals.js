@@ -106,10 +106,10 @@ export const Goals = {
         return f.uniField === 'design' && (s.creativity >= 72 && s.focus >= 55 && s.confidence >= 55);
       }
       case 'dunyayiGez': {
-        return (state.data.flags.travelCount || 0) >= 5 || s.money >= 4000;
+        return (state.data.numbers?.travelCount || 0) >= 5 || s.money >= 4000;
       }
       case 'olympicAthlete': {
-        return s.health >= 80 && s.endurance >= 75 && s.confidence >= 60 && (state.data.flags.training || 0) >= 5;
+        return s.health >= 80 && s.endurance >= 75 && s.confidence >= 60 && (state.data.numbers?.training || 0) >= 5;
       }
       case 'entrepreneur': {
         return s.confidence >= 65 && s.social >= 55 && s.money >= 2500;
@@ -118,7 +118,7 @@ export const Goals = {
         return s.intelligence >= 78 && s.focus >= 70 && s.discipline >= 70;
       }
       case 'importExport': {
-        return s.social >= 65 && s.confidence >= 65 && s.money >= 3000 && ((state.data.flags.travelCount || 0) >= 2);
+        return s.social >= 65 && s.confidence >= 65 && s.money >= 3000 && ((state.data.numbers?.travelCount || 0) >= 2);
       }
       default:
         return false;

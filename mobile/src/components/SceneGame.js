@@ -2,17 +2,52 @@
  * SceneGame — Sahne ID'sine ve seçenek içeriğine göre
  * en uygun görsel mini-oyun şablonunu seçer.
  */
-import SwipeCards     from './games/SwipeCards';
-import CharacterSelect from './games/CharacterSelect';
-import EnergyMeter    from './games/EnergyMeter';
-import PathCards      from './games/PathCards';
-import RiskSlider     from './games/RiskSlider';
+import SwipeCards        from './games/SwipeCards';
+import CharacterSelect   from './games/CharacterSelect';
+import EnergyMeter       from './games/EnergyMeter';
+import PathCards         from './games/PathCards';
+import RiskSlider        from './games/RiskSlider';
+import BubblePop         from './games/BubblePop';
+import ChoiceGameRouter  from './games/ChoiceGameRouter';
 
 // ─── Sahne → Şablon haritası ───────────────────────────────────────────────
 
 // CharacterSelect: aile/karakter seçim sahneleri
 const CHARACTER_SCENES = new Set([
-  'intro', 'y2001_outing_both', 'y2001_outing_father', 'y2001_outing_mother',
+  'intro',
+]);
+
+// BubblePop: sadece "Toplu etkinlik" tipi için (ikisiyle - both)
+const BUBBLE_SCENES = new Set([]);  // artık kullanılmıyor
+
+// ChoiceGameRouter: 2001 dışarı sahneleri + çocukluk seçim sahneleri + 2008/2010/2013 + 2027-2029 spor izi
+const CHOICE_GAME_SCENES = new Set([
+  'y2001_outing_father',  'y2001_outing_father2',
+  'y2001_outing_mother',  'y2001_outing_mother2',
+  'y2001_outing_both',    'y2001_outing_both2',
+  'y2000_2006_caretaking',
+  'y2004_early_activities',
+  'y2005_child_choice',
+  // İlkokul sonrası aktiviteler
+  'y2006_after_school_study',
+  'y2006_after_school_club',
+  'y2006_after_school_sport',
+  // 2008 · Aile Ekonomisi sahneleri
+  'y2008_family_finance',
+  'y2008_path_saving',
+  'y2008_path_support',
+  'y2008_path_responsibility',
+  // 2010 · Hobi sahneleri
+  'y2010_hobby',
+  'y2010_hobby_music',
+  'y2010_hobby_sport',
+  'y2010_hobby_coding',
+  // 2013 · Dinlen & Değerlendir
+  'y2013_reflect',
+  // 2027–2029 · Spor izi
+  'y2027_sports',
+  'y2028_sports_national',
+  'y2029_sports_international',
 ]);
 
 // PathCards: büyük dal / okul / kariyer seçimleri
@@ -28,8 +63,8 @@ const PATH_SCENES = new Set([
 // EnergyMeter: yoğun/dengeli/rahat yoğunluk sahneleri
 const ENERGY_SCENES = new Set([
   'y2006_primary_start', 'y2012_exam', 'y2018_uni_exam',
-  'y2020_pandemic', 'y2027_sports',
-  'y2027_tus_prep', 'y2028_sports_national',
+  'y2020_pandemic',
+  'y2027_tus_prep',
 ]);
 
 // RiskSlider: güvenli/dengeli/riskli seçimler
@@ -62,10 +97,12 @@ function detectByContent(choices) {
 }
 
 export function getGameType(sceneId, choices) {
-  if (CHARACTER_SCENES.has(sceneId)) return 'character';
-  if (PATH_SCENES.has(sceneId))      return 'path';
-  if (ENERGY_SCENES.has(sceneId))    return 'energy';
-  if (RISK_SCENES.has(sceneId))      return 'risk';
+  if (CHARACTER_SCENES.has(sceneId))    return 'character';
+  if (CHOICE_GAME_SCENES.has(sceneId))  return 'choice_game';
+  if (BUBBLE_SCENES.has(sceneId))       return 'bubble';
+  if (PATH_SCENES.has(sceneId))         return 'path';
+  if (ENERGY_SCENES.has(sceneId))       return 'energy';
+  if (RISK_SCENES.has(sceneId))         return 'risk';
   return detectByContent(choices);
 }
 
@@ -77,10 +114,12 @@ export default function SceneGame({ sceneId, scene, gameState, onChoose, buildSt
   const props = { scene, gameState, onChoose, buildStatPreview, Conditions };
 
   switch (type) {
-    case 'character': return <CharacterSelect {...props} />;
-    case 'path':      return <PathCards       {...props} />;
-    case 'energy':    return <EnergyMeter     {...props} />;
-    case 'risk':      return <RiskSlider      {...props} />;
-    default:          return <SwipeCards      {...props} />;
+    case 'character':   return <CharacterSelect  {...props} />;
+    case 'choice_game': return <ChoiceGameRouter {...props} />;
+    case 'bubble':      return <BubblePop        {...props} />;
+    case 'path':        return <PathCards        {...props} />;
+    case 'energy':      return <EnergyMeter      {...props} />;
+    case 'risk':        return <RiskSlider       {...props} />;
+    default:            return <SwipeCards       {...props} />;
   }
 }

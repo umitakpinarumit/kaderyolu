@@ -4,10 +4,11 @@
  * - Tek döngü (tek setInterval) — race condition yok
  * - useInsertionEffect hatası: Animated callback içinde setState yok
  */
+import { SAFE_TOP } from '../../utils/safeArea';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Animated, Dimensions, Easing, Platform, StyleSheet,
-  Text, TouchableOpacity, TouchableWithoutFeedback, View,
+  Animated, Dimensions, Easing, PanResponder, Platform, StyleSheet,
+  Text, TouchableOpacity, View,
 } from 'react-native';
 
 // iOS: shadow props, Android: elevation
@@ -17,7 +18,7 @@ const shadow = (color, opacity, radius, elev) =>
     : { shadowColor: color, shadowOpacity: opacity, shadowRadius: radius };
 
 const { width: SW, height: SH } = Dimensions.get('window');
-const HUD_H   = 110;
+const HUD_H = SAFE_TOP + 60;
 const CTRL_H  = 80;
 const GAME_H  = SH - HUD_H - CTRL_H;
 const LANE_H  = GAME_H / 3;
@@ -238,9 +239,59 @@ function useAnimPool(size = 30) {
   return useRef(Array.from({ length: size }, () => new Animated.Value(0))).current;
 }
 
+// ─── Typewriter ───────────────────────────────────────────────────────────────
+function TypewriterText({ text, speed = 18, style, onComplete }) {
+  const [shown, setShown] = useState('');
+  const idxRef = useRef(0);
+  useEffect(() => {
+    idxRef.current = 0;
+    setShown('');
+    const t = setInterval(() => {
+      idxRef.current++;
+      if (idxRef.current <= text.length) {
+        setShown(text.slice(0, idxRef.current));
+        if (idxRef.current === text.length) { clearInterval(t); onComplete?.(); }
+      }
+    }, speed);
+    return () => clearInterval(t);
+  }, [text]);
+  return <Text style={style}>{shown}</Text>;
+}
+
+const BABY_STORY =
+  '2001 yılı, İstanbul\'un kalabalık sokaklarından birinde...\n\n' +
+  'Annen bir anlığına başka tarafa baktı. Meraklı gözlerinle dünyayı ' +
+  'keşfetmek için bebek arabanla yola düştün!\n\n' +
+  'Anne 👩 ve Baban 👨 park kapısında seni arıyor. ' +
+  'Biberon toplayarak güçlen ve onlara ulaş!\n\n' +
+  '⚠️  DUR tabelasına çarparsan polisler seni bulur — ödülsüz eve dönersin.';
+
+function StoryScreen({ onDone }) {
+  const [done, setDone] = useState(false);
+  return (
+    <View style={ss.container}>
+      <Text style={ss.title}>👶 Bebek Yolculuğu</Text>
+      <View style={ss.box}>
+        <TypewriterText
+          text={BABY_STORY}
+          speed={18}
+          style={ss.text}
+          onComplete={() => setDone(true)}
+        />
+      </View>
+      <TouchableOpacity
+        style={[ss.btn, !done && ss.btnSecondary]}
+        onPress={onDone}
+      >
+        <Text style={ss.btnTxt}>{done ? '🚀 Hazırım, Başla!' : '⏭  Atla'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // ─── Ana bileşen ──────────────────────────────────────────────────────────────
 export default function BabyRaceGame({ onChoice, sceneText }) {
-  const [phase,      setPhase]      = useState('ready');
+  const [phase,      setPhase]      = useState('story');
   const [bottles,    setBottles]    = useState(0);
   const [rewards,    setRewards]    = useState(0);
   const [playerLane, setPlayerLane] = useState(1);
@@ -277,7 +328,8 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
   const loopId      = useRef(null);
   const bobLoop     = useRef(null);
   const tickFnRef   = useRef(null);     // arguments.callee yerine — Hermes/Android uyumlu
-  const lastLaneChg = useRef(0);        // şerit değişim debounce
+  const lastLaneChg   = useRef(0);       // şerit değişim debounce
+  const lastTriggerY   = useRef(null);   // son şerit değişiminin Y konumu
   // Örüntü durumu
   const patternI   = useRef(0);
   const stepI      = useRef(0);
@@ -285,6 +337,8 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
   const spawnCnt   = useRef(0);   // toplam spawn sayacı (DUR için)
   const spawnTick  = useRef(0);   // bir sonraki spawn'a kaç tick kaldı
   const gateMode   = useRef(false);
+  // Uçtan-uca geçiş güvenliği: 0↔2 geçişinde ortada (lane 1) DUR yerine biberon
+  const crossingCount = useRef(0); // kalan "güvenli" spawn sayısı
 
   const sceneTitle = (() => {
     const m = sceneText?.match(/<h2[^>]*>([\s\S]*?)<\/h2>/i);
@@ -335,9 +389,32 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
   };
 
   // Spawn: tek şeritte biberon, diğer 2 şeritte DUR
+  // Uçtan-uca geçişlerde (lane 0↔2) ortada (lane 1) DUR yerine biberon koyar
   const doSpawn = useCallback(() => {
     if (gateMode.current) return;
     const bl = currentBottleLane();
+
+    // Sonraki adımın biberon şeridini hesapla
+    const pat     = PATTERNS[patternI.current % PATTERNS.length];
+    const step    = pat[stepI.current % pat.length];
+    const isLastPat = stepI.current >= pat.length - 1;
+    const nextPat   = isLastPat
+      ? PATTERNS[(patternI.current + 1) % PATTERNS.length]
+      : pat;
+    const nextStepIdx = isLastPat ? 0 : (stepI.current + 1) % pat.length;
+    const nextBl    = nextPat[nextStepIdx].b;
+
+    // 0↔2 geçişi → ortadan (lane 1) geçmek zorunlu
+    const crossingNeeded = Math.abs(bl - nextBl) === 2;
+    // Adımın son 3 biberon'unda geçiş güvenliği aktif et
+    const nearEnd = stepCnt.current >= Math.max(0, step.n - 3);
+
+    if (crossingNeeded && nearEnd && crossingCount.current <= 0) {
+      crossingCount.current = 3; // geçiş sonrası da 3 spawn güvenli
+    }
+    if (crossingCount.current > 0) crossingCount.current--;
+
+    const isCrossingSafe = (crossingNeeded && nearEnd) || crossingCount.current > 0;
 
     // Biberon
     objsR.current = [...objsR.current, {
@@ -347,6 +424,13 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
     // DUR — her STOP_EVERY biberonda bir
     if (spawnCnt.current % STOP_EVERY === 0) {
       [0, 1, 2].filter(l => l !== bl).forEach(l => {
+        if (l === 1 && isCrossingSafe) {
+          // Geçiş anında lane 1'e DUR yerine biberon koy
+          objsR.current = [...objsR.current, {
+            id: nextId.current++, lane: 1, x: SW + 80, type: 'bottle', sc: getAnim(),
+          }];
+          return;
+        }
         objsR.current = [...objsR.current, {
           id: nextId.current++, lane: l, x: SW + 60, type: 'stop', sc: getAnim(),
         }];
@@ -357,8 +441,6 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
     stepCnt.current++;
 
     // Adım ilerleme
-    const pat  = PATTERNS[patternI.current % PATTERNS.length];
-    const step = pat[stepI.current % pat.length];
     if (stepCnt.current >= step.n) {
       stepCnt.current = 0;
       stepI.current   = (stepI.current + 1) % pat.length;
@@ -396,8 +478,9 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
     stepCnt.current  = 0;
     spawnCnt.current = 0;
     spawnTick.current = 0;
-    gateMode.current = false;
-    scPoolI.current  = 0;
+    gateMode.current    = false;
+    crossingCount.current = 0;
+    scPoolI.current     = 0;
 
     setPhase('playing'); setPlayerLane(1);
     setBottles(0); setRewards(0);
@@ -438,7 +521,10 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
           return false;
         }
         if (o.type === 'stop') {
-          crashed = true;
+          // Sadece arabanın ön yarısına çarparsa kaza
+          // CAR_X = 74, ön sınırı = 74 - 8 = 66
+          // Tabelanın X'i ≥ 66 ise ön → kaza; < 66 ise arka → geçiyor
+          if (o.x > CAR_X - 8) crashed = true;
           return false;
         }
         if (o.type.startsWith('gate_')) {
@@ -470,7 +556,8 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
         objsR.current = [];
         phaseR.current = 'crashed';
         setObjects([]);
-        setPhase('crashed');
+        // 2 sn bekle — oyuncuya çarpışmayı göster
+        setTimeout(() => setPhase('crashed'), 2000);
         return;
       }
 
@@ -531,12 +618,55 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
     ]).start();
   }, []);
 
+  // PanResponder — parmak ekranda tutulurken sürekli hareket algılar
+  // Her ~16px dikey kayma = 1 şerit değişimi (bırakmadan da çalışır)
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder:  (_, gs) => Math.abs(gs.dy) > 4,
+      onPanResponderGrant: (evt) => {
+        lastTriggerY.current = evt.nativeEvent.pageY;
+      },
+      onPanResponderMove: (evt) => {
+        if (phaseR.current !== 'playing' && phaseR.current !== 'gates') return;
+        const curY  = evt.nativeEvent.pageY;
+        const delta = curY - (lastTriggerY.current ?? curY);
+        if (Math.abs(delta) < 16) return;
+        lastTriggerY.current = curY;
+        const now = Date.now();
+        if (now - lastLaneChg.current < 180) return;
+        lastLaneChg.current = now;
+        const dir = delta > 0 ? 1 : -1;
+        const n = Math.max(0, Math.min(2, laneR.current + dir));
+        if (n === laneR.current) return;
+        laneR.current = n;
+        setPlayerLane(n);
+        // Fizik: şerit değişiminde, yeni şeritte zaten arabanın gerisinde
+        // kalan tabelalar (x ≤ CAR_X) geçilmiş sayılır — temizle
+        objsR.current = objsR.current.filter(
+          o => o.lane !== n || o.x > CAR_X
+        );
+        Animated.spring(carY, { toValue: laneY(n), friction: 12, tension: 90, useNativeDriver: true }).start();
+        Animated.sequence([
+          Animated.timing(carTilt, { toValue: dir * -15, duration: 85, useNativeDriver: true }),
+          Animated.spring(carTilt, { toValue: 0, friction: 4, useNativeDriver: true }),
+        ]).start();
+      },
+      onPanResponderRelease: () => { lastTriggerY.current = null; },
+    })
+  ).current;
+
   const calcBonus = (key, rwds) => {
     const stats = key === 'anne' ? ANNE_STATS : BABA_STATS;
     return Object.fromEntries(
       stats.map(st => [st.key, Math.min(st.base + 20, Math.round(st.base + rwds * st.ppt))])
     );
   };
+
+  // ════════ HİKAYE ════════
+  if (phase === 'story') {
+    return <StoryScreen onDone={() => setPhase('ready')} />;
+  }
 
   // ════════ HAZIR ════════
   if (phase === 'ready') {
@@ -671,8 +801,8 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
         </View>
       </View>
 
-      {/* Oyun alanı */}
-      <Animated.View style={[s.game, { opacity: flashOp }]}>
+      {/* Oyun alanı — tüm dikey sürüklemeyi PanResponder yakalar */}
+      <Animated.View style={[s.game, { opacity: flashOp }]} {...panResponder.panHandlers}>
         {LANES.map((ld, i) => (
           <View key={i} style={[s.laneView, {
             top: i * LANE_H, height: LANE_H,
@@ -720,12 +850,6 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
           </View>
         )}
 
-        <TouchableWithoutFeedback onPress={() => changeLane(-1)}>
-          <View style={[StyleSheet.absoluteFill, { right: SW / 2, zIndex: 10 }]} />
-        </TouchableWithoutFeedback>
-        <TouchableWithoutFeedback onPress={() => changeLane(1)}>
-          <View style={[StyleSheet.absoluteFill, { left: SW / 2, zIndex: 10 }]} />
-        </TouchableWithoutFeedback>
       </Animated.View>
 
       {/* Kontroller */}
@@ -746,6 +870,16 @@ export default function BabyRaceGame({ onChoice, sceneText }) {
     </View>
   );
 }
+
+const ss = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#050a14', alignItems: 'center', justifyContent: 'center', padding: 28 },
+  title:     { color: '#e6edf3', fontSize: 22, fontWeight: '900', marginBottom: 18, textAlign: 'center' },
+  box:       { backgroundColor: '#0d1628', borderRadius: 16, padding: 20, marginBottom: 28, width: '100%', borderWidth: 1, borderColor: '#1c2e44', minHeight: 180 },
+  text:      { color: '#c9d4df', fontSize: 15, lineHeight: 24 },
+  btn:       { backgroundColor: '#1f6feb', paddingVertical: 15, paddingHorizontal: 40, borderRadius: 14 },
+  btnSecondary: { backgroundColor: '#161b22', borderWidth: 1, borderColor: '#30363d' },
+  btnTxt:    { color: '#fff', fontSize: 16, fontWeight: '800', textAlign: 'center' },
+});
 
 const s = StyleSheet.create({
   screen:  { height: SH, backgroundColor: '#050a14' },
@@ -786,7 +920,7 @@ const s = StyleSheet.create({
   bonusBox:   { backgroundColor: '#0d1117', borderRadius: 12, padding: 12, marginBottom: 16, width: '100%', alignItems: 'center', borderWidth: 1, borderColor: '#21262d' },
   bonusTitle: { color: '#e6edf3', fontSize: 13, fontWeight: '700', marginBottom: 5 },
   bonusLine:  { fontSize: 13, marginBottom: 2 },
-  hud:         { height: HUD_H, flexDirection: 'row', alignItems: 'center', paddingTop: 44, paddingHorizontal: 12, backgroundColor: '#06101e', borderBottomWidth: 1, borderColor: '#0d1f36', gap: 8 },
+  hud:         { height: HUD_H, flexDirection: 'row', alignItems: 'center', paddingTop: SAFE_TOP + 4, paddingHorizontal: 12, backgroundColor: '#06101e', borderBottomWidth: 1, borderColor: '#0d1f36', gap: 8 },
   hudCell:     { alignItems: 'center', flex: 1 },
   hudBig:      { color: '#e6edf3', fontSize: 20, fontWeight: '900' },
   hudSub:      { color: '#4b5563', fontSize: 10, marginTop: 1 },

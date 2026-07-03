@@ -1,3 +1,4 @@
+import { SAFE_TOP } from '../../utils/safeArea';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View, Dimensions, ScrollView } from 'react-native';
 import BabyRaceGame from './BabyRaceGame';
@@ -144,7 +145,7 @@ export default function CharacterSelect({ scene, gameState, onChoose, Conditions
 }
 
 const cs = StyleSheet.create({
-  container:  { flexGrow: 1, alignItems: 'center', paddingTop: 56, paddingHorizontal: 16, paddingBottom: 32 },
+  container:  { flexGrow: 1, alignItems: 'center', paddingTop: SAFE_TOP + 16, paddingHorizontal: 16, paddingBottom: 32 },
   sceneTitle: { color: '#ffffff', fontSize: 18, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
   sceneBody:  { color: '#c9d4df', fontSize: 14, lineHeight: 20, textAlign: 'center', marginBottom: 6, paddingHorizontal: 8 },
   question:   { color: '#e6edf3', fontSize: 18, fontWeight: '700', marginTop: 20, marginBottom: 6, textAlign: 'center' },

@@ -1,0 +1,21 @@
+.DS_Store
+.claude/
+
+# Expo / React Native
+node_modules/
+.expo/
+dist/
+android/
+ios/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*

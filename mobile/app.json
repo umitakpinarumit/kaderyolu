@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kaderyolu",
     "slug": "kaderyolu",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -14,10 +14,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.kaderyolu.app"
+      "bundleIdentifier": "com.kaderyolum.app"
     },
     "android": {
-      "package": "com.kaderyolu.app",
+      "package": "com.kaderyolum.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0b0f14"
@@ -26,6 +27,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": []
   }
 }
